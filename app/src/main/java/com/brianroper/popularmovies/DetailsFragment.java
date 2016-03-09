@@ -27,6 +27,8 @@ public class DetailsFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        FetchDetailsTask detailTask = new FetchDetailsTask();
+        detailTask.execute("http://api.themoviedb.org/3/movie/293660?api_key=a0a454fc960bf4f69fa0adf5e13161cf");
     }
 
     @Override

@@ -37,8 +37,6 @@ public class FetchMovieTask extends AsyncTask<String, Void, String> {
 
             bufferedReader = new BufferedReader(reader);
 
-            //int data = bufferedReader.read();
-
             StringBuffer stringBuffer = new StringBuffer();
 
             String line;

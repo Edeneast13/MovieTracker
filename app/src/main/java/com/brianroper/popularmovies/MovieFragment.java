@@ -1,6 +1,9 @@
 package com.brianroper.popularmovies;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -8,14 +11,18 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import java.lang.reflect.Array;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MovieFragment extends Fragment {
+public class MovieFragment extends Fragment{
+
+    private ImageView iv;
 
     public MovieFragment() {
         // Required empty public constructor
@@ -32,7 +39,10 @@ public class MovieFragment extends Fragment {
         String movieId = "";
 
         try {
-            /*Create URI builder and make constants for Url params
+
+            final String BASE_MOVIE_URL = "http://api.themoviedb.org/3/movie/";
+            final String API_KEY_PARAM = "?api_key=a0a454fc960bf4f69fa0adf5e13161cf";
+            String fullMovieUrl = BASE_MOVIE_URL+movieId+API_KEY_PARAM;
 
             /* To DO: finish implementing FetchPosterTask and populate to object array */
             //takes the html poster url and uses Async Task to download the image
@@ -77,7 +87,6 @@ public class MovieFragment extends Fragment {
             for (int i = 0; i < posterUrlArray.size(); i++) {
 
                 Movie movie = new Movie();
-
                 movieId = movieIdArray.get(i);
                 posterUrl = posterUrlArray.get(i);
                 movie.setPosterUrl(posterUrl);
@@ -98,8 +107,22 @@ public class MovieFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_movie, container, false);
 
+        View v = inflater.inflate(R.layout.fragment_movie, container, false);
+        iv = (ImageView) v.findViewById(R.id.movie_pop1);
+        iv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch(v.getId()){
+                    case R.id.movie_pop1:
+
+                        Intent i = new Intent(getActivity(), DetailsFragment.class);
+                        startActivity(i);
+                }
+            }
+        });
+
+        return v;
     }
 }
 
