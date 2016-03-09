@@ -23,6 +23,11 @@ import java.util.regex.Pattern;
 public class MovieFragment extends Fragment{
 
     private ImageView iv;
+    ArrayList<String> movieIdArray = new ArrayList<String>();
+    ArrayList<String> posterUrlArray = new ArrayList<String>();
+    ArrayList<Movie> movieObjectArray = new ArrayList<Movie>();
+    String posterUrl = "";
+    String movieId = "";
 
     public MovieFragment() {
         // Required empty public constructor
@@ -32,14 +37,10 @@ public class MovieFragment extends Fragment{
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        ArrayList<String> movieIdArray = new ArrayList<String>();
-        ArrayList<String> posterUrlArray = new ArrayList<String>();
-        ArrayList<Movie> movieObjectArray = new ArrayList<Movie>();
-        String posterUrl = "";
-        String movieId = "";
-
         try {
 
+            final String POPULAR_MOVIES_PARAM = "movie";
+            final String HIGHEST_RATED_PARAM = "top-rated";
             final String BASE_MOVIE_URL = "http://api.themoviedb.org/3/movie/";
             final String API_KEY_PARAM = "?api_key=a0a454fc960bf4f69fa0adf5e13161cf";
             String fullMovieUrl = BASE_MOVIE_URL+movieId+API_KEY_PARAM;
@@ -51,7 +52,7 @@ public class MovieFragment extends Fragment{
 
             //retrieves html data from themoviedb.org and sets it to the htmlData variable
             FetchMovieTask movieTask = new FetchMovieTask();
-            String htmlData = movieTask.execute("https://www.themoviedb.org/movie").get();
+            String htmlData = movieTask.execute("https://www.themoviedb.org/"+POPULAR_MOVIES_PARAM).get();
 
             //splits the webpage source code to ignore unnecessary code
             String[] splitHtmlData = htmlData.split("<div class=\"pagination\">");
@@ -113,11 +114,58 @@ public class MovieFragment extends Fragment{
         iv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                String id;
+                Intent i = new Intent(getActivity(), DetailsFragment.class);
+                int arrayPosition = 0;
+
                 switch(v.getId()){
                     case R.id.movie_pop1:
-
-                        Intent i = new Intent(getActivity(), DetailsFragment.class);
+                        id = movieIdArray.get(arrayPosition);
+                        i.putExtra("MOVIEID", id);
                         startActivity(i);
+                        break;
+                    case R.id.movie_pop2:
+                        arrayPosition++;
+                        id = movieIdArray.get(arrayPosition);
+                        i.putExtra("MOVIEID", id);
+                        startActivity(i);
+                        break;
+                    case R.id.movie_pop3:
+                        arrayPosition++;
+                        id = movieIdArray.get(arrayPosition);
+                        i.putExtra("MOVIEID", id);
+                        startActivity(i);
+                        break;
+                    case R.id.movie_pop4:
+                        arrayPosition++;
+                        id = movieIdArray.get(arrayPosition);
+                        i.putExtra("MOVIEID", id);
+                        startActivity(i);
+                        break;
+                    case R.id.movie_pop5:
+                        id = movieIdArray.get(arrayPosition);
+                        i.putExtra("MOVIEID", id);
+                        startActivity(i);
+                        break;
+                    case R.id.movie_pop6:
+                        arrayPosition++;
+                        id = movieIdArray.get(arrayPosition);
+                        i.putExtra("MOVIEID", id);
+                        startActivity(i);
+                        break;
+                    case R.id.movie_pop7:
+                        arrayPosition++;
+                        id = movieIdArray.get(arrayPosition);
+                        i.putExtra("MOVIEID", id);
+                        startActivity(i);
+                        break;
+                    case R.id.movie_pop8:
+                        arrayPosition++;
+                        id = movieIdArray.get(arrayPosition);
+                        i.putExtra("MOVIEID", id);
+                        startActivity(i);
+                        break;
                 }
             }
         });

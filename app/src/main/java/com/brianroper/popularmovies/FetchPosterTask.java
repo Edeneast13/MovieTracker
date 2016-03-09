@@ -3,6 +3,7 @@ package com.brianroper.popularmovies;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.widget.ImageView;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +15,8 @@ import java.net.URL;
  * Created by brianroper on 3/8/16.
  */
 public class FetchPosterTask extends AsyncTask<String, Void, Bitmap>{
+
+    private ImageView mImageView;
 
     @Override
     protected Bitmap doInBackground(String... urls) {
@@ -42,5 +45,11 @@ public class FetchPosterTask extends AsyncTask<String, Void, Bitmap>{
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public void onPostExecute(Bitmap bitmap){
+
+        mImageView.setImageBitmap(bitmap);
     }
 }
