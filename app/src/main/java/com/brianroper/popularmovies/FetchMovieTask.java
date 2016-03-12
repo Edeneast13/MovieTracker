@@ -22,8 +22,6 @@ public class FetchMovieTask extends AsyncTask<String, Void, String> {
         BufferedReader bufferedReader = null;
 
         try {
-
-            /* TO DO: retrieve movie poster and movie id from html code on www.themoviedb.org/movie */
             //"https://api.themoviedb.org/3/movie/550?api_key=a0a454fc960bf4f69fa0adf5e13161cf"
 
             URL url = new URL(urls[0]);//themoviedb.org/movie
@@ -82,5 +80,10 @@ public class FetchMovieTask extends AsyncTask<String, Void, String> {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public void onPostExecute(String s){
+
     }
 }

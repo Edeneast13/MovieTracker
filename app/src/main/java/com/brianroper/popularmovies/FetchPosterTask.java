@@ -3,6 +3,8 @@ package com.brianroper.popularmovies;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.support.annotation.DrawableRes;
+import android.view.View;
 import android.widget.ImageView;
 
 import java.io.IOException;
@@ -16,7 +18,8 @@ import java.net.URL;
  */
 public class FetchPosterTask extends AsyncTask<String, Void, Bitmap>{
 
-    private ImageView mImageView;
+    private HttpURLConnection urlConnection;
+    private Bitmap mPoster;
 
     @Override
     protected Bitmap doInBackground(String... urls) {
@@ -25,13 +28,13 @@ public class FetchPosterTask extends AsyncTask<String, Void, Bitmap>{
 
             URL url = new URL(urls[0]);
 
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection = (HttpURLConnection) url.openConnection();
 
             urlConnection.connect();
 
             InputStream inputStream = urlConnection.getInputStream();
 
-            Bitmap mPoster = BitmapFactory.decodeStream(inputStream);
+            mPoster = BitmapFactory.decodeStream(inputStream);
 
             return mPoster;
 
@@ -44,12 +47,18 @@ public class FetchPosterTask extends AsyncTask<String, Void, Bitmap>{
 
             e.printStackTrace();
         }
+        finally {
+
+            if (urlConnection != null) {
+
+                urlConnection.disconnect();
+            }
+        }
         return null;
     }
 
     @Override
     public void onPostExecute(Bitmap bitmap){
 
-        mImageView.setImageBitmap(bitmap);
     }
 }

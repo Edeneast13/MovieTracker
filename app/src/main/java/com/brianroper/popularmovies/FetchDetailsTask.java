@@ -1,5 +1,6 @@
 package com.brianroper.popularmovies;
 
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -13,18 +14,19 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 
 /**
  * Created by brianroper on 3/9/16.
  */
 public class FetchDetailsTask extends AsyncTask<String, Void, String> {
 
-    HttpURLConnection urlConnection = null;
-    String result = null;
-    BufferedReader bufferedReader = null;
-
     @Override
     protected String doInBackground(String... urls) {
+
+        HttpURLConnection urlConnection = null;
+        String result = null;
+        BufferedReader bufferedReader = null;
 
         try {
 
@@ -55,8 +57,6 @@ public class FetchDetailsTask extends AsyncTask<String, Void, String> {
             }
 
             result = stringBuffer.toString();
-
-            return null;
         }
         catch(MalformedURLException e){
             e.printStackTrace();
@@ -64,27 +64,33 @@ public class FetchDetailsTask extends AsyncTask<String, Void, String> {
         catch (IOException e ){
             e.printStackTrace();
         }
-        return result;
+        finally {
+
+            if (urlConnection != null) {
+
+                urlConnection.disconnect();
+            }
+            if (bufferedReader != null) {
+
+                try {
+                    bufferedReader.close();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        try{
+            return result;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
     public void onPostExecute(String url){
 
-        try{
-
-            JSONObject jsonObject = new JSONObject(url);
-            String posterPath = jsonObject.getString("poster_path");
-            String overview = jsonObject.getString("overview");
-            String title = jsonObject.getString("original_title");
-            String releaseDate = jsonObject.getString("release_date");
-            String rating = jsonObject.getString("vote_average");
-
-            Log.i("PosterPath", "Posterpath: " + posterPath + " Overview:  " + overview
-                            + " Title: " + title + " ReleaseDate: " + releaseDate
-                            + " Rating: " + rating);
-        }
-        catch(JSONException e){
-            e.printStackTrace();
-        }
     }
 }

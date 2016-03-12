@@ -67,24 +67,16 @@ public class MovieFragment extends Fragment{
                 movieIdArray.add(idMatcher.group(1));
             }
 
-            /*for (int i = 0; i < movieIdArray.size(); i++) {
-
-                System.out.println(movieIdArray.get(i).toString());
-                //how to increment i by 2??
-            }*/
             Pattern posterUrlPattern = Pattern.compile("srcset=\"(.*?) 1x");
             Matcher posterUrlMatcher = posterUrlPattern.matcher(splitHtmlData[0]);
 
+            //picks out movie poster urls from web page source code
             while(posterUrlMatcher.find()){
 
                 posterUrlArray.add(posterUrlMatcher.group(1));
             }
 
-            /*for (int i = 0; i < posterUrlArray.size(); i++) {
-
-                System.out.println(posterUrlArray.get(i).toString());
-            }*/
-
+            //creates new Movie objects that store movie id and poster url
             for (int i = 0; i < posterUrlArray.size(); i++) {
 
                 Movie movie = new Movie();
@@ -92,7 +84,7 @@ public class MovieFragment extends Fragment{
                 posterUrl = posterUrlArray.get(i);
                 movie.setPosterUrl(posterUrl);
                 movie.setId(movieId);
-                Log.i("Movie", "Id: " + movie.getId().toString() + " " + "URL: " + movie.getPosterUrl().toString());
+                Log.i("Movie", "Id: " + movie.getId().toString() + " " + "URL: " + movie.getPosterUrl());
             }
             /* TO DO: create for loop to populate the gridview with movie posters from movie objects */
         }
@@ -109,6 +101,7 @@ public class MovieFragment extends Fragment{
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
 
+        //To DO: Change implementation to a list view and an OnItemClickedListener
         View v = inflater.inflate(R.layout.fragment_movie, container, false);
         iv = (ImageView) v.findViewById(R.id.movie_pop1);
         iv.setOnClickListener(new View.OnClickListener() {
@@ -116,7 +109,7 @@ public class MovieFragment extends Fragment{
             public void onClick(View v) {
 
                 String id;
-                Intent i = new Intent(getActivity(), DetailsFragment.class);
+                Intent i = new Intent(getActivity(), DetailActivity.class);
                 int arrayPosition = 0;
 
                 switch(v.getId()){
