@@ -19,20 +19,26 @@ import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.lang.reflect.Array;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MovieFragment extends Fragment{
 
-    private ImageView iv;
     ArrayList<String> movieIdArray = new ArrayList<String>();
     ArrayList<String> posterUrlArray = new ArrayList<String>();
-    String posterUrl = "";
     String movieId = "";
+    String poster = "";
+    final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
+    final String POSTER_SIZE_PARAM = "w370";
+    int count = 0;
 
     public MovieFragment() {
         // Required empty public constructor
@@ -42,6 +48,31 @@ public class MovieFragment extends Fragment{
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+    }
+
+    public String getPosterPathFromJson(String movieId){
+
+        String posterUrl ="";
+
+        try {
+            FetchMovieTask posterPathTask = new FetchMovieTask();
+            String jsonData = posterPathTask
+                    .execute("https://api.themoviedb.org/3/movie/" + movieId + "?api_key=a0a454fc960bf4f69fa0adf5e13161cf")
+                    .get();
+            JSONObject jsonObject = new JSONObject(jsonData);
+            String posterPath = jsonObject.getString("poster_path");
+            posterUrl = BASE_POSTER_URL+POSTER_SIZE_PARAM+posterPath;
+        }
+        catch (InterruptedException e){
+            e.printStackTrace();
+        }
+        catch (ExecutionException e){
+            e.printStackTrace();
+        }
+        catch (JSONException e){
+            e.printStackTrace();
+        }
+        return posterUrl;
     }
 
     @Override
@@ -76,23 +107,21 @@ public class MovieFragment extends Fragment{
                 movieIdArray.add(idMatcher.group(1));
             }
 
-            Pattern posterUrlPattern = Pattern.compile("srcset=\"(.*?)1x");
-            Matcher posterUrlMatcher = posterUrlPattern.matcher(splitHtmlData[0]);
+            for (int i = 0; i < movieIdArray.size(); i++) {
 
-            //picks out movie poster urls from web page source code
-            while(posterUrlMatcher.find()){
-
-                posterUrlArray.add(posterUrlMatcher.group(1));
+                count++;
+                movieIdArray.remove(count);
             }
-            
+
             //creates new Movie objects that store movie id and poster url
             for (int i = 0; i < movieIdArray.size(); i++) {
                 Movie movie = new Movie();
                 movieId = movieIdArray.get(i);
                 movie.setId(movieId);
-                Log.i("Movie", "Id: " + movie.getId().toString());
+                poster = getPosterPathFromJson(movie.getId());
+                movie.setPosterUrl(poster);
+                posterUrlArray.add(movie.getPosterUrl());
             }
-
         }
         catch(InterruptedException e){
             e.printStackTrace();
@@ -115,109 +144,110 @@ public class MovieFragment extends Fragment{
                 Intent i = new Intent(getActivity(), DetailActivity.class);
                 int arrayPosition = 0;
                 String movie ="";
+                int cnt = 0;
 
                 if(position == 0){
-                    movie = movieIdArray.get(0);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 1){
-                    movie = movieIdArray.get(2);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 2){
-                    movie = movieIdArray.get(4);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 3){
-                    movie = movieIdArray.get(6);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 4){
-                    movie = movieIdArray.get(8);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 5){
-                    movie = movieIdArray.get(10);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 6){
-                    movie = movieIdArray.get(12);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 7){
-                    movie = movieIdArray.get(14);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 8){
-                    movie = movieIdArray.get(16);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 9){
-                    movie = movieIdArray.get(18);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 10){
-                    movie = movieIdArray.get(20);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 11){
-                    movie = movieIdArray.get(22);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 12){
-                    movie = movieIdArray.get(24);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 13){
-                    movie = movieIdArray.get(26);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 14){
-                    movie = movieIdArray.get(28);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 15){
-                    movie = movieIdArray.get(30);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 16){
-                    movie = movieIdArray.get(32);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 17){
-                    movie = movieIdArray.get(34);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 18){
-                    movie = movieIdArray.get(36);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 19){
-                    movie = movieIdArray.get(38);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
                 else if(position == 20){
-                    movie = movieIdArray.get(40);
+                    movie = movieIdArray.get(position);
                     i.putExtra("MOVIEID", movie);
                     startActivity(i);
                 }
