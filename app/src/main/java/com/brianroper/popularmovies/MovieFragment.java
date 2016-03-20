@@ -2,30 +2,20 @@ package com.brianroper.popularmovies;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.Toast;
-
 import com.squareup.picasso.Picasso;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.lang.reflect.Array;
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,6 +28,7 @@ public class MovieFragment extends Fragment{
     String poster = "";
     final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
     final String POSTER_SIZE_PARAM = "w370";
+    final String TOP_RATED_PARAM = "/top-rated";
     int count = 0;
 
     public MovieFragment() {
@@ -48,6 +39,18 @@ public class MovieFragment extends Fragment{
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem menu){
+
+        int id = menu.getItemId();
+
+        if(id == R.id.action_settings){
+
+            return true;
+        }
+        return super.onOptionsItemSelected(menu);
     }
 
     public String getPosterPathFromJson(String movieId){
@@ -85,10 +88,8 @@ public class MovieFragment extends Fragment{
         try {
 
             final String POPULAR_MOVIES_PARAM = "movie";
-            final String HIGHEST_RATED_PARAM = "top-rated";
             final String BASE_MOVIE_URL = "http://api.themoviedb.org/3/movie/";
             final String API_KEY_PARAM = "?api_key=a0a454fc960bf4f69fa0adf5e13161cf";
-            String fullMovieUrl = BASE_MOVIE_URL+movieId+API_KEY_PARAM;
 
             //retrieves html data from themoviedb.org and sets it to the htmlData variable
             FetchMovieTask movieTask = new FetchMovieTask();

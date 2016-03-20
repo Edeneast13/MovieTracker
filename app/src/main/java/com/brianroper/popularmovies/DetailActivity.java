@@ -112,8 +112,6 @@ public class DetailActivity extends AppCompatActivity {
                 FetchDetailsTask detailTask = new FetchDetailsTask();
                 String jsonData = detailTask.execute(url).get();
 
-                Log.i("JSONDATA", jsonData);
-
                 JSONObject jsonObject = new JSONObject(jsonData);
                 mPosterPath = jsonObject.getString("poster_path");
                 mOverview = jsonObject.getString("overview");
