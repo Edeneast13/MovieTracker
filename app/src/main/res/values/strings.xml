@@ -65,12 +65,21 @@
 
     <string name="pref_title_vibrate">Vibrate</string>
 
-    <string name="pref_sort_selection">Sort Movies By</string>
-    <string name="pref_popularity_key" translatable="false">popular</string>
+    <string name="pref_sort_label">Sort Movies By</string>
+    <string name="pref_sort_popular" translatable="false">popular</string>
     <string name="pref_rating_key" translatable="false">rating</string>
+    <string name="pref_sort_key" translatable="false">sortChoice</string>
+    <string name="pref_sort_rating" translatable="false">rating</string>
+    <string name="pref_popular_label">Popularity</string>
+    <string name="pref_rating_label">Top Rated</string>
 
-    <string-array name="pref_sort_choices">
-        <item>Highest Rated</item>
-        <item>Popularity</item>
+    <string-array name="pref_sort_values">
+        <item>@string/pref_sort_popular</item>
+        <item>@string/pref_sort_rating</item>
+    </string-array>
+
+    <string-array name="pref_sort_options">
+        <item>@string/pref_popular_label</item>
+        <item>@string/pref_rating_label</item>
     </string-array>
 </resources>

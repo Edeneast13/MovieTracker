@@ -26,11 +26,25 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        activeNetworkCheck();
+
             if (savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.movie, new MovieFragment())
                         .commit();
             }
+    }
+
+    /*Checks to see if the device has an active network connection */
+    public boolean activeNetworkCheck(){
+
+        ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+
+        boolean isConnected = networkInfo != null && networkInfo.isConnectedOrConnecting();
+
+        return isConnected;
     }
 
     @Override
@@ -50,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
 
-            Intent i = new Intent(this, SettingsActivity.class);
+            Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
             startActivity(i);
             return true;
         }

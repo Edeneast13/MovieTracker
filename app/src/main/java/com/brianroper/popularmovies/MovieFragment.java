@@ -2,14 +2,18 @@ package com.brianroper.popularmovies;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import com.squareup.picasso.Picasso;
@@ -28,8 +32,11 @@ public class MovieFragment extends Fragment{
     String poster = "";
     final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
     final String POSTER_SIZE_PARAM = "w370";
+    final String POPULAR_MOVIES_PARAM = "movie";
     final String TOP_RATED_PARAM = "/top-rated";
+    String sortParameter ="";
     int count = 0;
+    private GridView mGridView;
 
     public MovieFragment() {
         // Required empty public constructor
@@ -48,6 +55,7 @@ public class MovieFragment extends Fragment{
 
         if(id == R.id.action_settings){
 
+            getMovieDataFromApi();
             return true;
         }
         return super.onOptionsItemSelected(menu);
@@ -78,27 +86,30 @@ public class MovieFragment extends Fragment{
         return posterUrl;
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.movie_gridview, container, false);
-        final GridView mGridView = (GridView) v.findViewById(R.id.gridview);
+    public void getMovieDataFromApi(){
 
         try {
 
-            final String POPULAR_MOVIES_PARAM = "movie";
-            final String BASE_MOVIE_URL = "http://api.themoviedb.org/3/movie/";
-            final String API_KEY_PARAM = "?api_key=a0a454fc960bf4f69fa0adf5e13161cf";
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String sortPref = sharedPreferences.getString(getString(R.string.pref_sort_key),getString(R.string.pref_sort_popular));
+
+            if(sortPref.equals(getString(R.string.pref_sort_rating))){
+
+                sortParameter = POPULAR_MOVIES_PARAM+TOP_RATED_PARAM;
+            }
+            else{
+
+                sortParameter = POPULAR_MOVIES_PARAM;
+            }
 
             //retrieves html data from themoviedb.org and sets it to the htmlData variable
             FetchMovieTask movieTask = new FetchMovieTask();
-            String htmlData = movieTask.execute("https://www.themoviedb.org/"+POPULAR_MOVIES_PARAM).get();
+            String htmlData = movieTask.execute("https://www.themoviedb.org/"+sortParameter).get();
 
             //splits the webpage source code to ignore unnecessary code
             String[] splitHtmlData = htmlData.split("<div class=\"pagination\">");
 
-            /*To Do: Fix page source split to properly populate movie id array list without double id's */
+            /*TODO: Fix page source split to properly populate movie id array list without double id's */
             //picks out movie id's from web page source code
             Pattern idPattern = Pattern.compile("id=\"movie_(.*?)\"");
             Matcher idMatcher = idPattern.matcher(splitHtmlData[0]);
@@ -130,7 +141,6 @@ public class MovieFragment extends Fragment{
         catch (ExecutionException e){
             e.printStackTrace();
         }
-
         String[] postersArray = new String[posterUrlArray.size()];
         postersArray = posterUrlArray.toArray(postersArray);
 
@@ -254,6 +264,17 @@ public class MovieFragment extends Fragment{
                 }
             }
         });
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View v = inflater.inflate(R.layout.movie_gridview, container, false);
+        mGridView = (GridView) v.findViewById(R.id.gridview);
+
+        getMovieDataFromApi();
+
         return v;
     }
 
