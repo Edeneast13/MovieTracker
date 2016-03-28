@@ -1,20 +1,18 @@
 package com.brianroper.popularmovies;
 
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
+import com.squareup.picasso.Picasso;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -50,9 +48,11 @@ public class DetailActivity extends AppCompatActivity {
         private TextView mRatingTextView;
         private TextView mOverviewTextView;
         private ImageView mPosterImage;
-        private Bitmap mBitmap;
         final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
         final String POSTER_SIZE_PARAM = "w370";
+        private Context mContext;
+        private String mKey = String.valueOf(R.string.api_key);
+        final String KEY_PARAM = "?";
 
         public DetailsFragment() {
             // Required empty public constructor
@@ -65,25 +65,7 @@ public class DetailActivity extends AppCompatActivity {
             mReleaseDateTextView.setText("Release Date: " + mReleaseDate);
             mRatingTextView.setText("Rating: " + mRating + "/10");
             mOverviewTextView.setText("Overview: " + mOverview);
-            mPosterImage.setImageBitmap(mBitmap);
-        }
-
-        public Bitmap returnBitmapFromTask(String url){
-
-            try {
-
-                FetchPosterTask posterTask = new FetchPosterTask();
-                Bitmap bitmap = posterTask.execute(url).get();
-                return bitmap;
-            }
-            catch (ExecutionException e){
-                e.printStackTrace();
-            }
-            catch (InterruptedException e){
-                e.printStackTrace();
-            }
-
-            return null;
+            Picasso.with(mContext).load(BASE_POSTER_URL+POSTER_SIZE_PARAM+mPosterPath).into(mPosterImage);
         }
 
         @Override
@@ -104,13 +86,20 @@ public class DetailActivity extends AppCompatActivity {
             Intent i = getActivity().getIntent();
             mMovieId = i.getStringExtra("MOVIEID");
 
-            String url = "https://api.themoviedb.org/3/movie/" + mMovieId + "?api_key=a0a454fc960bf4f69fa0adf5e13161cf";
-            Log.i("URLSTRING", url);
+            Uri.Builder builder = new Uri.Builder();
+            builder.scheme("https");
+            builder.authority("api.themoviedb.org");
+            builder.appendPath("3");
+            builder.appendPath("movie");
+            builder.appendPath(mMovieId);
+
+            String myUrl = builder.build().toString();
+            myUrl = myUrl + KEY_PARAM + mKey;
 
             try{
 
                 FetchDetailsTask detailTask = new FetchDetailsTask();
-                String jsonData = detailTask.execute(url).get();
+                String jsonData = detailTask.execute(myUrl).get();
 
                 JSONObject jsonObject = new JSONObject(jsonData);
                 mPosterPath = jsonObject.getString("poster_path");
@@ -118,10 +107,6 @@ public class DetailActivity extends AppCompatActivity {
                 mTitle = jsonObject.getString("original_title");
                 mReleaseDate = jsonObject.getString("release_date");
                 mRating = jsonObject.getString("vote_average");
-
-                Log.i("JOSNOBJECTS", "Posterpath: " + mPosterPath + " Overview:  " + mOverview
-                        + " Title: " + mTitle + " ReleaseDate: " + mReleaseDate
-                        + " Rating: " + mRating);
             }
             catch(JSONException e){
                 e.printStackTrace();
@@ -133,7 +118,6 @@ public class DetailActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            mBitmap = returnBitmapFromTask(BASE_POSTER_URL+POSTER_SIZE_PARAM+mPosterPath);
             updateDetailViews();
             // Inflate the layout for this fragment
             return inflater.inflate(R.layout.fragment_details, container, false);

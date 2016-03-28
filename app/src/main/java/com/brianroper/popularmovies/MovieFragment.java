@@ -6,14 +6,12 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import com.squareup.picasso.Picasso;
@@ -37,6 +35,8 @@ public class MovieFragment extends Fragment{
     String sortParameter ="";
     int count = 0;
     private GridView mGridView;
+    private String mKey = String.valueOf(R.string.api_key);
+    final String KEY_PARAM = "?";
 
     public MovieFragment() {
         // Required empty public constructor
@@ -68,7 +68,7 @@ public class MovieFragment extends Fragment{
         try {
             FetchMovieTask posterPathTask = new FetchMovieTask();
             String jsonData = posterPathTask
-                    .execute("https://api.themoviedb.org/3/movie/" + movieId + "?api_key=a0a454fc960bf4f69fa0adf5e13161cf")
+                    .execute("https://api.themoviedb.org/3/movie/" + movieId + KEY_PARAM + mKey)
                     .get();
             JSONObject jsonObject = new JSONObject(jsonData);
             String posterPath = jsonObject.getString("poster_path");
@@ -109,7 +109,6 @@ public class MovieFragment extends Fragment{
             //splits the webpage source code to ignore unnecessary code
             String[] splitHtmlData = htmlData.split("<div class=\"pagination\">");
 
-            /*TODO: Fix page source split to properly populate movie id array list without double id's */
             //picks out movie id's from web page source code
             Pattern idPattern = Pattern.compile("id=\"movie_(.*?)\"");
             Matcher idMatcher = idPattern.matcher(splitHtmlData[0]);
@@ -120,7 +119,6 @@ public class MovieFragment extends Fragment{
             }
 
             for (int i = 0; i < movieIdArray.size(); i++) {
-
                 count++;
                 movieIdArray.remove(count);
             }
@@ -150,118 +148,12 @@ public class MovieFragment extends Fragment{
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                String selectedItem = parent.getItemAtPosition(position).toString();
-
                 Intent i = new Intent(getActivity(), DetailActivity.class);
-                int arrayPosition = 0;
                 String movie ="";
-                int cnt = 0;
 
-                if(position == 0){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 1){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 2){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 3){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 4){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 5){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 6){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 7){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 8){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 9){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 10){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 11){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 12){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 13){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 14){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 15){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 16){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 17){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 18){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 19){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
-                else if(position == 20){
-                    movie = movieIdArray.get(position);
-                    i.putExtra("MOVIEID", movie);
-                    startActivity(i);
-                }
+                movie = movieIdArray.get(position);
+                i.putExtra("MOVIEID", movie);
+                startActivity(i);
             }
         });
     }
@@ -274,7 +166,6 @@ public class MovieFragment extends Fragment{
         mGridView = (GridView) v.findViewById(R.id.gridview);
 
         getMovieDataFromApi();
-
         return v;
     }
 
@@ -282,7 +173,7 @@ public class MovieFragment extends Fragment{
     public class GridViewAdapter extends ArrayAdapter{
 
         private Context context;
-        private LayoutInflater inflator;
+        private LayoutInflater inflater;
         private int id;
         private String[] imageURls;
 
@@ -294,7 +185,7 @@ public class MovieFragment extends Fragment{
             this.id = id;
             this.imageURls = imageUrls;
 
-            inflator = LayoutInflater.from(context);
+            inflater = LayoutInflater.from(context);
         }
 
         @Override
@@ -302,11 +193,9 @@ public class MovieFragment extends Fragment{
 
             if(convertView == null){
 
-                convertView = inflator.inflate(R.layout.gridview_item, parent, false);
+                convertView = inflater.inflate(R.layout.gridview_item, parent, false);
             }
-
             Picasso.with(context).load(imageURls[position]).fit().into((ImageView) convertView);
-
             return convertView;
         }
     }
