@@ -3,9 +3,11 @@ package com.brianroper.popularmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,7 +37,7 @@ public class MovieFragment extends Fragment{
     String sortParameter ="";
     int count = 0;
     private GridView mGridView;
-    private String mKey = String.valueOf(R.string.api_key);
+    private String mKey = "api_key=a0a454fc960bf4f69fa0adf5e13161cf";
     final String KEY_PARAM = "?";
 
     public MovieFragment() {
@@ -164,6 +166,9 @@ public class MovieFragment extends Fragment{
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.movie_gridview, container, false);
         mGridView = (GridView) v.findViewById(R.id.gridview);
+
+        Log.i("URL", mKey);
+
 
         getMovieDataFromApi();
         return v;

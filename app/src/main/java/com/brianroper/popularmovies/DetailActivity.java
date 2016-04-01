@@ -1,21 +1,33 @@
 package com.brianroper.popularmovies;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
+import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 public class DetailActivity extends AppCompatActivity {
@@ -35,24 +47,45 @@ public class DetailActivity extends AppCompatActivity {
         }
     }
 
-    public static class DetailsFragment extends Fragment{
+    public class DetailsFragment extends Fragment{
 
+        //Data
         private String mTitle ="";
         private String mPosterPath;
         private String mOverview ="";
         private String mRating = "";
         private String mReleaseDate;
         private String mMovieId;
+        private String mTrailer ="";
+        private String mTrailerUrl = "";
+        private String mReviewUrl = "";
+        private String mReview = "";
+        private String mAuthor = "";
+        private String mContent = "";
+        private ArrayList<Review> reviewArrayList = new ArrayList<Review>();
+        //views
         private TextView mTitleTextView;
         private TextView mReleaseDateTextView;
         private TextView mRatingTextView;
         private TextView mOverviewTextView;
+        private TextView mReviewTextView;
         private ImageView mPosterImage;
+        private TextView mTrailerTextView;
+        private FloatingActionButton mFloatingActionButton;
+        private Context mContext;
+        //urls
+        private String mKey = "api_key=a0a454fc960bf4f69fa0adf5e13161cf";
+        final String KEY_PARAM = "?";
+        final String BASE_JSON_REQUEST = "api.themoviedb.org";
+        final String JSON_REQUEST_PARAM = "3";
+        final String MOVIE_JSON_REQUEST = "movie";
+        final String REVIEW_JSON_REQUEST = "reviews";
+        final String TRAILER_JSON_REQUEST = "videos";
+        final String YOUTUBE_BASE_URL = "www.youtube.com";
+        final String YOUTUBE_WATCH_PARAM = "watch";
+        final String YOUTUBE_VIDEO_ID_QUERY_PARAM = "v";
         final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
         final String POSTER_SIZE_PARAM = "w370";
-        private Context mContext;
-        private String mKey = String.valueOf(R.string.api_key);
-        final String KEY_PARAM = "?";
 
         public DetailsFragment() {
             // Required empty public constructor
@@ -61,12 +94,87 @@ public class DetailActivity extends AppCompatActivity {
         //updates the views to display live data
         public void updateDetailViews(){
 
+            Picasso.with(mContext).load(BASE_POSTER_URL+POSTER_SIZE_PARAM+mPosterPath).into(mPosterImage);
             mTitleTextView.setText(mTitle);
             mReleaseDateTextView.setText("Release Date: " + mReleaseDate);
             mRatingTextView.setText("Rating: " + mRating + "/10");
             mOverviewTextView.setText("Overview: " + mOverview);
-            Picasso.with(mContext).load(BASE_POSTER_URL+POSTER_SIZE_PARAM+mPosterPath).into(mPosterImage);
+            mTrailerTextView.setText("Play Trailer");
+            mReviewTextView.setText("Author: " + mAuthor + "\n" + mContent);
         }
+
+        public void retrieveTrailerJson(String url){
+
+            try{
+
+                FetchDetailsTask trailerTask = new FetchDetailsTask();
+                String trailerData = trailerTask.execute(url).get();
+                //key param from json
+                JSONObject trailerJsonObject = new JSONObject(trailerData);
+                JSONArray trailerJsonArray = trailerJsonObject.getJSONArray("results");
+
+                for (int i = 0; i < trailerJsonArray.length(); i++) {
+
+                    JSONObject arrayElement = trailerJsonArray.getJSONObject(i);
+                    String key = arrayElement.getString("key");
+                    mTrailer = key;
+                }
+            }
+            catch (JSONException e){
+                e.printStackTrace();
+            }
+            catch (InterruptedException e){
+                e.printStackTrace();
+            }
+            catch (ExecutionException e){
+                e.printStackTrace();
+            }
+        }
+
+        public void retrieveReviewJson(String url){
+
+            try{
+
+                FetchDetailsTask reviewTask = new FetchDetailsTask();
+                String reviewData = reviewTask.execute(url).get();
+
+                JSONObject reviewJsonObject = new JSONObject(reviewData);
+                JSONArray reviewJsonArray = reviewJsonObject.getJSONArray("results");
+
+                for (int i = 0; i < reviewJsonArray.length(); i++) {
+
+                    JSONObject arrayElement = reviewJsonArray.getJSONObject(i);
+                    String author = arrayElement.getString("author");
+                    String content = arrayElement.getString("content");
+
+                    Review review = new Review();
+                    review.setAuthor(author);
+                    review.setContent(content);
+
+                    mAuthor = review.getAuthor();
+                    mContent = review.getContent();
+                }
+            }
+            catch (JSONException e){
+                e.printStackTrace();
+            }
+            catch (InterruptedException e){
+                e.printStackTrace();
+            }
+            catch (ExecutionException e){
+                e.printStackTrace();
+            }
+        }
+
+        public void playVideoInYouTubeApp(String url){
+
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setPackage("com.google.android.youtube");
+            i.setData(Uri.parse(url));
+            startActivity(i);
+        }
+
+
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -82,19 +190,44 @@ public class DetailActivity extends AppCompatActivity {
             mRatingTextView = (TextView)getActivity().findViewById(R.id.rating);
             mOverviewTextView = (TextView)getActivity().findViewById(R.id.plot_overview);
             mPosterImage = (ImageView)getActivity().findViewById(R.id.poster_thumbnail);
+            mFloatingActionButton = (FloatingActionButton)getActivity().findViewById(R.id.fab);
+            mTrailerTextView = (TextView)getActivity().findViewById(R.id.trailer_textview);
+            mReviewTextView = (TextView)getActivity().findViewById(R.id.review_textview);
 
             Intent i = getActivity().getIntent();
             mMovieId = i.getStringExtra("MOVIEID");
 
             Uri.Builder builder = new Uri.Builder();
             builder.scheme("https");
-            builder.authority("api.themoviedb.org");
-            builder.appendPath("3");
-            builder.appendPath("movie");
+            builder.authority(BASE_JSON_REQUEST);
+            builder.appendPath(JSON_REQUEST_PARAM);
+            builder.appendPath(MOVIE_JSON_REQUEST);
             builder.appendPath(mMovieId);
 
             String myUrl = builder.build().toString();
             myUrl = myUrl + KEY_PARAM + mKey;
+
+            Uri.Builder trailerRequest = new Uri.Builder();
+            trailerRequest.scheme("https");
+            trailerRequest.authority(BASE_JSON_REQUEST);
+            trailerRequest.appendPath(JSON_REQUEST_PARAM);
+            trailerRequest.appendPath(MOVIE_JSON_REQUEST);
+            trailerRequest.appendPath(mMovieId);
+            trailerRequest.appendPath(TRAILER_JSON_REQUEST);
+
+            mTrailerUrl = trailerRequest.build().toString();
+            mTrailerUrl = mTrailerUrl + KEY_PARAM + mKey;
+
+            Uri.Builder reviewRequest = new Uri.Builder();
+            reviewRequest.scheme("https");
+            reviewRequest.authority(BASE_JSON_REQUEST);
+            reviewRequest.appendPath(JSON_REQUEST_PARAM);
+            reviewRequest.appendPath(MOVIE_JSON_REQUEST);
+            reviewRequest.appendPath(mMovieId);
+            reviewRequest.appendPath(REVIEW_JSON_REQUEST);
+
+            mReviewUrl = reviewRequest.build().toString();
+            mReviewUrl = mReviewUrl + KEY_PARAM + mKey;
 
             try{
 
@@ -118,7 +251,52 @@ public class DetailActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
+            retrieveReviewJson(mReviewUrl);
+
             updateDetailViews();
+
+            mTrailerTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    retrieveTrailerJson(mTrailerUrl);
+
+                    Uri.Builder videoBuilder = new Uri.Builder();
+                    videoBuilder.scheme("https");
+                    videoBuilder.authority(YOUTUBE_BASE_URL);
+                    videoBuilder.appendPath(YOUTUBE_WATCH_PARAM);
+                    videoBuilder.appendQueryParameter(YOUTUBE_VIDEO_ID_QUERY_PARAM, mTrailer);
+
+                    String fullYoutubeUrl = videoBuilder.build().toString();
+
+                    playVideoInYouTubeApp(fullYoutubeUrl);
+                }
+            });
+
+            mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    SQLiteDatabase db;
+                    db = openOrCreateDatabase("favorites.db", SQLiteDatabase.CREATE_IF_NECESSARY, null);
+
+                    ImageView mPosterRef = mPosterImage;
+                    Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
+                    byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
+
+                    ContentValues values = new ContentValues();
+                    values.put("title", mTitle);
+                    values.put("release", mReleaseDate);
+                    values.put("rating", mRating);
+                    values.put("overview", mOverview);
+                    values.put("review", mReview);
+                    values.put("poster", posterByteArray);
+
+                    db.insert("MOVIES", null, values);
+
+                    Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
+                }
+            });
             // Inflate the layout for this fragment
             return inflater.inflate(R.layout.fragment_details, container, false);
         }
