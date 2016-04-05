@@ -3,7 +3,10 @@ package com.brianroper.popularmovies;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQuery;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,7 +28,6 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -62,7 +64,6 @@ public class DetailActivity extends AppCompatActivity {
         private String mReview = "";
         private String mAuthor = "";
         private String mContent = "";
-        private ArrayList<Review> reviewArrayList = new ArrayList<Review>();
         //views
         private TextView mTitleTextView;
         private TextView mReleaseDateTextView;
@@ -74,8 +75,8 @@ public class DetailActivity extends AppCompatActivity {
         private FloatingActionButton mFloatingActionButton;
         private Context mContext;
         //urls
-        private String mKey = "api_key=a0a454fc960bf4f69fa0adf5e13161cf";
-        final String KEY_PARAM = "?";
+        private String mKey;
+        final String API_KEY_PARAM = "api_key";
         final String BASE_JSON_REQUEST = "api.themoviedb.org";
         final String JSON_REQUEST_PARAM = "3";
         final String MOVIE_JSON_REQUEST = "movie";
@@ -100,7 +101,7 @@ public class DetailActivity extends AppCompatActivity {
             mRatingTextView.setText("Rating: " + mRating + "/10");
             mOverviewTextView.setText("Overview: " + mOverview);
             mTrailerTextView.setText("Play Trailer");
-            mReviewTextView.setText("Author: " + mAuthor + "\n" + mContent);
+            mReviewTextView.setText(mReview);
         }
 
         public void retrieveTrailerJson(String url){
@@ -174,7 +175,38 @@ public class DetailActivity extends AppCompatActivity {
             startActivity(i);
         }
 
+        public boolean checkDbForExistingMovie(){
 
+            String result = "";
+
+            try {
+
+                DBHandler dbHandler = new DBHandler(getContext());
+
+                SQLiteDatabase db;
+
+                db = dbHandler.getReadableDatabase();
+
+                Cursor c = db.rawQuery("SELECT * FROM movies WHERE title == " + mTitle, null);
+
+                int index = c.getColumnIndex("title");
+                c.moveToFirst();
+                result = c.getString(index);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                return false;
+            }
+            finally {
+                if (result == null) {
+
+                    return false;
+                } else {
+
+                    return true;
+                }
+            }
+        }
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -194,6 +226,8 @@ public class DetailActivity extends AppCompatActivity {
             mTrailerTextView = (TextView)getActivity().findViewById(R.id.trailer_textview);
             mReviewTextView = (TextView)getActivity().findViewById(R.id.review_textview);
 
+            mKey = getString(R.string.api_key);
+
             Intent i = getActivity().getIntent();
             mMovieId = i.getStringExtra("MOVIEID");
 
@@ -203,9 +237,9 @@ public class DetailActivity extends AppCompatActivity {
             builder.appendPath(JSON_REQUEST_PARAM);
             builder.appendPath(MOVIE_JSON_REQUEST);
             builder.appendPath(mMovieId);
+            builder.appendQueryParameter(API_KEY_PARAM, mKey);
 
             String myUrl = builder.build().toString();
-            myUrl = myUrl + KEY_PARAM + mKey;
 
             Uri.Builder trailerRequest = new Uri.Builder();
             trailerRequest.scheme("https");
@@ -214,9 +248,9 @@ public class DetailActivity extends AppCompatActivity {
             trailerRequest.appendPath(MOVIE_JSON_REQUEST);
             trailerRequest.appendPath(mMovieId);
             trailerRequest.appendPath(TRAILER_JSON_REQUEST);
+            trailerRequest.appendQueryParameter(API_KEY_PARAM, mKey);
 
             mTrailerUrl = trailerRequest.build().toString();
-            mTrailerUrl = mTrailerUrl + KEY_PARAM + mKey;
 
             Uri.Builder reviewRequest = new Uri.Builder();
             reviewRequest.scheme("https");
@@ -225,9 +259,9 @@ public class DetailActivity extends AppCompatActivity {
             reviewRequest.appendPath(MOVIE_JSON_REQUEST);
             reviewRequest.appendPath(mMovieId);
             reviewRequest.appendPath(REVIEW_JSON_REQUEST);
+            reviewRequest.appendQueryParameter(API_KEY_PARAM, mKey);
 
             mReviewUrl = reviewRequest.build().toString();
-            mReviewUrl = mReviewUrl + KEY_PARAM + mKey;
 
             try{
 
@@ -253,6 +287,8 @@ public class DetailActivity extends AppCompatActivity {
 
             retrieveReviewJson(mReviewUrl);
 
+            mReview = "Author: " + mAuthor + "\n" + mContent;
+
             updateDetailViews();
 
             mTrailerTextView.setOnClickListener(new View.OnClickListener() {
@@ -277,29 +313,35 @@ public class DetailActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
 
-                    SQLiteDatabase db;
-                    db = openOrCreateDatabase("favorites.db", SQLiteDatabase.CREATE_IF_NECESSARY, null);
+                    try {
+                            DBHandler dbHandler = new DBHandler(getContext());
 
-                    ImageView mPosterRef = mPosterImage;
-                    Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
-                    byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
+                            SQLiteDatabase db;
+                            db = dbHandler.getWritableDatabase();
 
-                    ContentValues values = new ContentValues();
-                    values.put("title", mTitle);
-                    values.put("release", mReleaseDate);
-                    values.put("rating", mRating);
-                    values.put("overview", mOverview);
-                    values.put("review", mReview);
-                    values.put("poster", posterByteArray);
+                            ImageView mPosterRef = mPosterImage;
+                            Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
+                            byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
 
-                    db.insert("MOVIES", null, values);
+                            ContentValues values = new ContentValues();
+                            values.put("title", mTitle);
+                            values.put("release", mReleaseDate);
+                            values.put("rating", mRating);
+                            values.put("overview", mOverview);
+                            values.put("review", mReview);
+                            values.put("poster", posterByteArray);
 
-                    Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
+                            db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+
+                            Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
             });
             // Inflate the layout for this fragment
             return inflater.inflate(R.layout.fragment_details, container, false);
         }
     }
-
 }

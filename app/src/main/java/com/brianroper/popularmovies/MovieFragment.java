@@ -4,8 +4,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteCursorDriver;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQuery;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,6 +23,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.Toast;
+
 import com.squareup.picasso.Picasso;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,21 +33,30 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import butterknife.Bind;
+import butterknife.BindString;
+import butterknife.ButterKnife;
+
 public class MovieFragment extends Fragment{
 
-    ArrayList<String> movieIdArray = new ArrayList<String>();
-    ArrayList<String> posterUrlArray = new ArrayList<String>();
-    String movieId = "";
-    String poster = "";
+    private ArrayList<String> movieIdArray = new ArrayList<String>();
+    private ArrayList<String> posterUrlArray = new ArrayList<String>();
+    private ArrayList<Bitmap> postersFromFavoritesArray = new ArrayList<Bitmap>();
+    private String movieId = "";
+    private String poster = "";
     final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
+    final String BASE_JSON_REQUEST = "api.themoviedb.org";
+    final String JSON_REQUEST_PARAM = "3";
+    final String MOVIE_JSON_REQUEST = "movie";
+    final String API_KEY_PARAM = "api_key";
     final String POSTER_SIZE_PARAM = "w370";
     final String POPULAR_MOVIES_PARAM = "movie";
     final String TOP_RATED_PARAM = "/top-rated";
-    String sortParameter ="";
+    private String sortParameter ="";
     int count = 0;
     private GridView mGridView;
-    private String mKey = "api_key=a0a454fc960bf4f69fa0adf5e13161cf";
-    final String KEY_PARAM = "?";
+    private String mKey;
+    private FloatingActionButton fb;
 
     public MovieFragment() {
         // Required empty public constructor
@@ -47,7 +65,6 @@ public class MovieFragment extends Fragment{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -68,9 +85,18 @@ public class MovieFragment extends Fragment{
         String posterUrl ="";
 
         try {
+            Uri.Builder builder = new Uri.Builder();
+            builder.scheme("http");
+            builder.authority(BASE_JSON_REQUEST);
+            builder.appendPath(JSON_REQUEST_PARAM);
+            builder.appendPath(MOVIE_JSON_REQUEST);
+            builder.appendPath(movieId);
+            builder.appendQueryParameter(API_KEY_PARAM, mKey);
+            String myUrl = builder.build().toString();
+
             FetchMovieTask posterPathTask = new FetchMovieTask();
             String jsonData = posterPathTask
-                    .execute("https://api.themoviedb.org/3/movie/" + movieId + KEY_PARAM + mKey)
+                    .execute(myUrl)
                     .get();
             JSONObject jsonObject = new JSONObject(jsonData);
             String posterPath = jsonObject.getString("poster_path");
@@ -99,14 +125,25 @@ public class MovieFragment extends Fragment{
 
                 sortParameter = POPULAR_MOVIES_PARAM+TOP_RATED_PARAM;
             }
-            else{
+            else if(sortPref.equals("popular")){
 
                 sortParameter = POPULAR_MOVIES_PARAM;
             }
+            else{
+
+                getPosterDataFromFavoritesDb();
+            }
+
+            //https://www.themoviedb.org/movie
+            Uri.Builder builder = new Uri.Builder();
+            builder.scheme("https");
+            builder.authority("www.themoviedb.org");
+            builder.appendPath(sortParameter);
+            String myUrl = builder.build().toString();
 
             //retrieves html data from themoviedb.org and sets it to the htmlData variable
             FetchMovieTask movieTask = new FetchMovieTask();
-            String htmlData = movieTask.execute("https://www.themoviedb.org/"+sortParameter).get();
+            String htmlData = movieTask.execute(myUrl).get();
 
             //splits the webpage source code to ignore unnecessary code
             String[] splitHtmlData = htmlData.split("<div class=\"pagination\">");
@@ -160,15 +197,75 @@ public class MovieFragment extends Fragment{
         });
     }
 
+    public void getPosterDataFromFavoritesDb(){
+
+        try {
+
+            DBHandler dbHandler = new DBHandler(getContext());
+
+            SQLiteDatabase db;
+            Bitmap posterBitmap;
+
+            db = dbHandler.getReadableDatabase();
+
+            Cursor c = db.rawQuery("SELECT * FROM movies", null);
+
+            int titleIndex = c.getColumnIndex("title");
+            c.moveToFirst();
+            String title = c.getString(titleIndex);
+
+            int poster = c.getColumnIndex("poster");
+            c.moveToFirst();
+
+            //TODO: Create for loop to fully populate array with all bitmap values from poster column
+            posterBitmap = DbBitmapUtil.convertByteArrayToBitmap(c.getBlob(poster));
+            postersFromFavoritesArray.add(posterBitmap);
+
+            Log.i("Poster: ", postersFromFavoritesArray.get(0).toString());
+
+            c.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        finally{
+
+            Bitmap[] postersArray = new Bitmap[postersFromFavoritesArray.size()];
+            postersArray = postersFromFavoritesArray.toArray(postersArray);
+
+            BitmapGridViewAdapter adapter = new BitmapGridViewAdapter(getActivity(), getId(), postersArray);
+            mGridView.setAdapter(adapter);
+            mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                    Toast.makeText(getActivity(), "Woo", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
+        //TODO: Create or recycle gridview and adapter
+        //TODO: Create a for loop to cycle through the movie in favorite and populate them to views
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.movie_gridview, container, false);
         mGridView = (GridView) v.findViewById(R.id.gridview);
+        fb = (FloatingActionButton) getActivity().findViewById(R.id.fab2);
+        mKey = getString(R.string.api_key);
 
-        Log.i("URL", mKey);
+        ButterKnife.bind(getActivity());
 
+        fb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                getPosterDataFromFavoritesDb();
+            }
+        });
 
         getMovieDataFromApi();
         return v;
@@ -202,6 +299,42 @@ public class MovieFragment extends Fragment{
             }
             Picasso.with(context).load(imageURls[position]).fit().into((ImageView) convertView);
             return convertView;
+        }
+    }
+
+    public class BitmapGridViewAdapter extends ArrayAdapter{
+
+        private Context context;
+        private LayoutInflater inflater;
+        private int id;
+        private Bitmap[] images;
+        ImageView imageView;
+
+        BitmapGridViewAdapter(Context context, int id, Bitmap[] images){
+
+            super(context, R.layout.movie_gridview, images);
+
+            this.context = context;
+            this.id = id;
+            this.images = images;
+
+            inflater = LayoutInflater.from(context);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent){
+
+            if(convertView == null){
+
+                convertView = inflater.inflate(R.layout.gridview_item, parent, false);
+                imageView = new ImageView(context);
+            }
+            else{
+                imageView = (ImageView)convertView;
+            }
+            
+            imageView.setImageBitmap(images[position]);
+            return imageView;
         }
     }
 }

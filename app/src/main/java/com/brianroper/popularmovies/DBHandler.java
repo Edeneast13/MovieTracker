@@ -10,32 +10,25 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHandler extends SQLiteOpenHelper {
 
-    private final static int DATABASE_VERSION = 1;
+    private final static int DATABASE_VERSION = 4;
     private final static String DATABASE_NAME = "favorites.db";
-    private final static String TABLE_MOVIES = "movies";
-    private final static String COLUMN_ID = "_id";
-    private final static String COLUMN_TITLE = "title";
-    private final static String COLUMN_RELEASE = "release date";
-    private final static String COLUMN_RATING = "rating";
-    private final static String COLUMN_OVERVIEW = "overview";
-    private final static String COLUMN_REVIEW = "review";
-    private final static String COLUMN_POSTER = "poster";
 
-    public DBHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, DATABASE_NAME, factory, DATABASE_VERSION);
+    public DBHandler(Context context){
+
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        String query = "CREATE_TABLE " + TABLE_MOVIES + "(" +
-                COLUMN_ID + "INTEGER PRIMARY KEY AUTOINCREMENT " +
-                COLUMN_TITLE + "TEXT " +
-                COLUMN_RELEASE + "TEXT " +
-                COLUMN_RATING + "TEXT " +
-                COLUMN_OVERVIEW + "TEXT "+
-                COLUMN_REVIEW + "TEXT " +
-                COLUMN_POSTER + "BLOB" +
+        String query = "CREATE TABLE "+ MovieContract.MovieEntry.TABLE_NAME + "(" +
+                MovieContract.MovieEntry.COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                MovieContract.MovieEntry.COLUMN_TITLE + " TEXT, " +
+                MovieContract.MovieEntry.COLUMN_RELEASE + " TEXT, " +
+                MovieContract.MovieEntry.COLUMN_RATING + " TEXT, " +
+                MovieContract.MovieEntry.COLUMN_OVERVIEW + " TEXT, "+
+                MovieContract.MovieEntry.COLUMN_REVIEW + " TEXT, " +
+                MovieContract.MovieEntry.COLUMN_POSTER + " BLOB" +
                 ");";
 
         db.execSQL(query);
