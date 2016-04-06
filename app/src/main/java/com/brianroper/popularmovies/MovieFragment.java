@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQuery;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -42,6 +43,7 @@ public class MovieFragment extends Fragment{
     private ArrayList<String> movieIdArray = new ArrayList<String>();
     private ArrayList<String> posterUrlArray = new ArrayList<String>();
     private ArrayList<Bitmap> postersFromFavoritesArray = new ArrayList<Bitmap>();
+    private ArrayList<String> titlesFromFavoritesArray = new ArrayList<String>();
     private String movieId = "";
     private String poster = "";
     final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
@@ -192,12 +194,16 @@ public class MovieFragment extends Fragment{
 
                 movie = movieIdArray.get(position);
                 i.putExtra("MOVIEID", movie);
+                i.putExtra("STATUS", "online");
                 startActivity(i);
             }
         });
     }
 
+    //populates grid view with posters from the local database
     public void getPosterDataFromFavoritesDb(){
+
+        String title = "";
 
         try {
 
@@ -212,17 +218,21 @@ public class MovieFragment extends Fragment{
 
             int titleIndex = c.getColumnIndex("title");
             c.moveToFirst();
-            String title = c.getString(titleIndex);
+
+            for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()){
+
+                title = c.getString(titleIndex);
+                titlesFromFavoritesArray.add(title);
+            }
 
             int poster = c.getColumnIndex("poster");
             c.moveToFirst();
 
-            //TODO: Create for loop to fully populate array with all bitmap values from poster column
-            posterBitmap = DbBitmapUtil.convertByteArrayToBitmap(c.getBlob(poster));
-            postersFromFavoritesArray.add(posterBitmap);
+            for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()){
 
-            Log.i("Poster: ", postersFromFavoritesArray.get(0).toString());
-
+                posterBitmap = DbBitmapUtil.convertByteArrayToBitmap(c.getBlob(poster));
+                postersFromFavoritesArray.add(posterBitmap);
+            }
             c.close();
         }
         catch (Exception e){
@@ -235,17 +245,26 @@ public class MovieFragment extends Fragment{
 
             BitmapGridViewAdapter adapter = new BitmapGridViewAdapter(getActivity(), getId(), postersArray);
             mGridView.setAdapter(adapter);
+            final Bitmap[] finalPostersArray = postersArray;
+
             mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                    Toast.makeText(getActivity(), "Woo", Toast.LENGTH_LONG).show();
+                    final String finalTitle = titlesFromFavoritesArray.get(position);
+
+                    Intent i = new Intent(getActivity(), DetailActivity.class);
+                    i.putExtra("STATUS", "offline");
+
+                    Bitmap bitmap = finalPostersArray[position];
+                    byte[] bytes = DbBitmapUtil.convertBitmapToByteArray(bitmap);
+
+                    i.putExtra("POSTER", bytes);
+                    i.putExtra("TITLE", finalTitle);
+                    startActivity(i);
                 }
             });
         }
-
-        //TODO: Create or recycle gridview and adapter
-        //TODO: Create a for loop to cycle through the movie in favorite and populate them to views
     }
 
     @Override
@@ -332,7 +351,7 @@ public class MovieFragment extends Fragment{
             else{
                 imageView = (ImageView)convertView;
             }
-            
+
             imageView.setImageBitmap(images[position]);
             return imageView;
         }

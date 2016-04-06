@@ -64,6 +64,8 @@ public class DetailActivity extends AppCompatActivity {
         private String mReview = "";
         private String mAuthor = "";
         private String mContent = "";
+        private byte[] mBitmapFromFavorites;
+        private String mTitleFromFavorites = "";
         //views
         private TextView mTitleTextView;
         private TextView mReleaseDateTextView;
@@ -95,7 +97,6 @@ public class DetailActivity extends AppCompatActivity {
         //updates the views to display live data
         public void updateDetailViews(){
 
-            Picasso.with(mContext).load(BASE_POSTER_URL+POSTER_SIZE_PARAM+mPosterPath).into(mPosterImage);
             mTitleTextView.setText(mTitle);
             mReleaseDateTextView.setText("Release Date: " + mReleaseDate);
             mRatingTextView.setText("Rating: " + mRating + "/10");
@@ -175,61 +176,7 @@ public class DetailActivity extends AppCompatActivity {
             startActivity(i);
         }
 
-        public boolean checkDbForExistingMovie(){
-
-            String result = "";
-
-            try {
-
-                DBHandler dbHandler = new DBHandler(getContext());
-
-                SQLiteDatabase db;
-
-                db = dbHandler.getReadableDatabase();
-
-                Cursor c = db.rawQuery("SELECT * FROM movies WHERE title == " + mTitle, null);
-
-                int index = c.getColumnIndex("title");
-                c.moveToFirst();
-                result = c.getString(index);
-            }
-            catch (Exception e){
-                e.printStackTrace();
-                return false;
-            }
-            finally {
-                if (result == null) {
-
-                    return false;
-                } else {
-
-                    return true;
-                }
-            }
-        }
-
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-
-            mTitleTextView = (TextView)getActivity().findViewById(R.id.movie_title);
-            mReleaseDateTextView = (TextView)getActivity().findViewById(R.id.release_date);
-            mRatingTextView = (TextView)getActivity().findViewById(R.id.rating);
-            mOverviewTextView = (TextView)getActivity().findViewById(R.id.plot_overview);
-            mPosterImage = (ImageView)getActivity().findViewById(R.id.poster_thumbnail);
-            mFloatingActionButton = (FloatingActionButton)getActivity().findViewById(R.id.fab);
-            mTrailerTextView = (TextView)getActivity().findViewById(R.id.trailer_textview);
-            mReviewTextView = (TextView)getActivity().findViewById(R.id.review_textview);
-
-            mKey = getString(R.string.api_key);
-
-            Intent i = getActivity().getIntent();
-            mMovieId = i.getStringExtra("MOVIEID");
+        public void populateDetailViewOnline(){
 
             Uri.Builder builder = new Uri.Builder();
             builder.scheme("https");
@@ -289,23 +236,30 @@ public class DetailActivity extends AppCompatActivity {
 
             mReview = "Author: " + mAuthor + "\n" + mContent;
 
+            Picasso.with(mContext).load(BASE_POSTER_URL+POSTER_SIZE_PARAM+mPosterPath).into(mPosterImage);
             updateDetailViews();
 
             mTrailerTextView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
-                    retrieveTrailerJson(mTrailerUrl);
+                    try {
 
-                    Uri.Builder videoBuilder = new Uri.Builder();
-                    videoBuilder.scheme("https");
-                    videoBuilder.authority(YOUTUBE_BASE_URL);
-                    videoBuilder.appendPath(YOUTUBE_WATCH_PARAM);
-                    videoBuilder.appendQueryParameter(YOUTUBE_VIDEO_ID_QUERY_PARAM, mTrailer);
+                        retrieveTrailerJson(mTrailerUrl);
 
-                    String fullYoutubeUrl = videoBuilder.build().toString();
+                        Uri.Builder videoBuilder = new Uri.Builder();
+                        videoBuilder.scheme("https");
+                        videoBuilder.authority(YOUTUBE_BASE_URL);
+                        videoBuilder.appendPath(YOUTUBE_WATCH_PARAM);
+                        videoBuilder.appendQueryParameter(YOUTUBE_VIDEO_ID_QUERY_PARAM, mTrailer);
 
-                    playVideoInYouTubeApp(fullYoutubeUrl);
+                        String fullYoutubeUrl = videoBuilder.build().toString();
+
+                        playVideoInYouTubeApp(fullYoutubeUrl);
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
             });
 
@@ -314,32 +268,122 @@ public class DetailActivity extends AppCompatActivity {
                 public void onClick(View v) {
 
                     try {
-                            DBHandler dbHandler = new DBHandler(getContext());
+                        DBHandler dbHandler = new DBHandler(getContext());
 
-                            SQLiteDatabase db;
-                            db = dbHandler.getWritableDatabase();
+                        SQLiteDatabase db;
+                        db = dbHandler.getWritableDatabase();
 
-                            ImageView mPosterRef = mPosterImage;
-                            Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
-                            byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
+                        ImageView mPosterRef = mPosterImage;
+                        Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
+                        byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
 
-                            ContentValues values = new ContentValues();
-                            values.put("title", mTitle);
-                            values.put("release", mReleaseDate);
-                            values.put("rating", mRating);
-                            values.put("overview", mOverview);
-                            values.put("review", mReview);
-                            values.put("poster", posterByteArray);
+                        ContentValues values = new ContentValues();
+                        values.put("title", mTitle);
+                        values.put("release", mReleaseDate);
+                        values.put("rating", mRating);
+                        values.put("overview", mOverview);
+                        values.put("review", mReview);
+                        values.put("poster", posterByteArray);
+                        Log.i("POSTER BYTE ARRAY: ", posterByteArray.toString());
 
-                            db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+                        db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
 
-                            Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
                     }
                     catch (Exception e){
                         e.printStackTrace();
                     }
                 }
             });
+        }
+
+        public void populateDetailViewOffline(){
+
+            DBHandler dbHandler = new DBHandler(getContext());
+
+            SQLiteDatabase db;
+            db = dbHandler.getReadableDatabase();
+
+            Cursor c = db.rawQuery("SELECT * FROM movies WHERE title = \"" + mTitle + "\"", null);
+
+            if(c != null && c.moveToFirst()){
+
+                int releaseIndex = c.getColumnIndex("release");
+                c.moveToFirst();
+                mReleaseDate = c.getString(releaseIndex);
+                Log.i("MOVIEDATA: ", mReleaseDate);
+
+                int ratingIndex = c.getColumnIndex("rating");
+                c.moveToFirst();
+                mRating = c.getString(ratingIndex);
+                Log.i("MOVIEDATA: ", mRating);
+
+                int overviewIndex = c.getColumnIndex("overview");
+                c.moveToFirst();
+                mOverview = c.getString(overviewIndex);
+                Log.i("MOVIEDATA: ", mOverview);
+
+                int reviewIndex = c.getColumnIndex("review");
+                c.moveToFirst();
+                mReview = c.getString(reviewIndex);
+                Log.i("MOVIEDATA: ", mReview);
+
+                c.close();
+            }
+
+            mPosterImage.setImageBitmap(DbBitmapUtil.convertByteArrayToBitmap(mBitmapFromFavorites));
+            updateDetailViews();
+        }
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+
+            mTitleTextView = (TextView)getActivity().findViewById(R.id.movie_title);
+            mReleaseDateTextView = (TextView)getActivity().findViewById(R.id.release_date);
+            mRatingTextView = (TextView)getActivity().findViewById(R.id.rating);
+            mOverviewTextView = (TextView)getActivity().findViewById(R.id.plot_overview);
+            mPosterImage = (ImageView)getActivity().findViewById(R.id.poster_thumbnail);
+            mFloatingActionButton = (FloatingActionButton)getActivity().findViewById(R.id.fab);
+            mTrailerTextView = (TextView)getActivity().findViewById(R.id.trailer_textview);
+            mReviewTextView = (TextView)getActivity().findViewById(R.id.review_textview);
+            mKey = getString(R.string.api_key);
+
+            Intent i = getActivity().getIntent();
+
+            try {
+                mMovieId = i.getStringExtra("MOVIEID");
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+
+            try{
+
+               mBitmapFromFavorites = i.getByteArrayExtra("POSTER");
+               mTitleFromFavorites = i.getStringExtra("TITLE");
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+
+            String status = i.getStringExtra("STATUS");
+
+            if (status.equals("online")){
+
+                populateDetailViewOnline();
+            }
+            else if(status.equals("offline")){
+
+                mTitle = mTitleFromFavorites;
+                Log.i("TITLE", mTitle);
+                populateDetailViewOffline();
+            }
             // Inflate the layout for this fragment
             return inflater.inflate(R.layout.fragment_details, container, false);
         }

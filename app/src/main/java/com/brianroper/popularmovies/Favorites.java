@@ -1,5 +1,7 @@
 package com.brianroper.popularmovies;
 
+import android.graphics.Bitmap;
+
 /**
  * Created by brianroper on 3/31/16.
  */
@@ -10,6 +12,7 @@ public class Favorites {
     private String mRating;
     private String mOverview;
     private String mReview;
+    private Bitmap mPoster;
 
     public Favorites() {
 
@@ -53,5 +56,13 @@ public class Favorites {
 
     public void setReview(String review) {
         mReview = review;
+    }
+
+    public Bitmap getPoster() {
+        return mPoster;
+    }
+
+    public void setPoster(Bitmap poster) {
+        mPoster = poster;
     }
 }
