@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteQuery;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -332,6 +333,14 @@ public class DetailActivity extends AppCompatActivity {
             }
 
             mPosterImage.setImageBitmap(DbBitmapUtil.convertByteArrayToBitmap(mBitmapFromFavorites));
+
+            CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams)
+                    mFloatingActionButton.getLayoutParams();
+
+            layoutParams.setAnchorId(View.NO_ID);
+            mFloatingActionButton.setLayoutParams(layoutParams);
+            mFloatingActionButton.setVisibility(View.GONE);
+
             updateDetailViews();
         }
 
@@ -381,7 +390,6 @@ public class DetailActivity extends AppCompatActivity {
             else if(status.equals("offline")){
 
                 mTitle = mTitleFromFavorites;
-                Log.i("TITLE", mTitle);
                 populateDetailViewOffline();
             }
             // Inflate the layout for this fragment

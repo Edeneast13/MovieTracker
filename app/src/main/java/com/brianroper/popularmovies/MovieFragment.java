@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -76,7 +77,25 @@ public class MovieFragment extends Fragment{
 
         if(id == R.id.action_settings){
 
-            getMovieDataFromApi();
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String sortPref = sharedPreferences.getString(getString(R.string.pref_sort_key),getString(R.string.pref_sort_popular));
+
+            if(sortPref.equals("popular")){
+
+                getMovieDataFromApi();
+            }
+            else if(sortPref.equals("rating")){
+
+                getMovieDataFromApi();
+            }
+            else{
+
+                getPosterDataFromFavoritesDb();
+            }
+
+            Log.i("SORTPREF", sortPref.toString());
+
+
             return true;
         }
         return super.onOptionsItemSelected(menu);
@@ -119,23 +138,6 @@ public class MovieFragment extends Fragment{
     public void getMovieDataFromApi(){
 
         try {
-
-            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String sortPref = sharedPreferences.getString(getString(R.string.pref_sort_key),getString(R.string.pref_sort_popular));
-
-            if(sortPref.equals(getString(R.string.pref_sort_rating))){
-
-                sortParameter = POPULAR_MOVIES_PARAM+TOP_RATED_PARAM;
-            }
-            else if(sortPref.equals("popular")){
-
-                sortParameter = POPULAR_MOVIES_PARAM;
-            }
-            else{
-
-                getPosterDataFromFavoritesDb();
-            }
-
             //https://www.themoviedb.org/movie
             Uri.Builder builder = new Uri.Builder();
             builder.scheme("https");
@@ -267,6 +269,8 @@ public class MovieFragment extends Fragment{
         }
     }
 
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -286,7 +290,24 @@ public class MovieFragment extends Fragment{
             }
         });
 
-        getMovieDataFromApi();
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortPref = sharedPreferences.getString(getString(R.string.pref_sort_key),getString(R.string.pref_sort_popular));
+
+        if(sortPref.equals(getString(R.string.pref_sort_rating))){
+
+            sortParameter = POPULAR_MOVIES_PARAM+TOP_RATED_PARAM;
+            getMovieDataFromApi();
+        }
+        else if(sortPref.equals("popular")){
+
+            sortParameter = POPULAR_MOVIES_PARAM;
+            getMovieDataFromApi();
+        }
+        else if(sortPref.equals("favorites")){
+
+            getPosterDataFromFavoritesDb();
+        }
+
         return v;
     }
 
@@ -351,8 +372,17 @@ public class MovieFragment extends Fragment{
             else{
                 imageView = (ImageView)convertView;
             }
+            GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams();
+            imageView.setLayoutParams(layoutParams);
 
+            imageView.setAdjustViewBounds(false);
+            imageView.requestLayout();
+
+            imageView.getLayoutParams().height = 1085;
+            imageView.getLayoutParams().width = 1085;
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imageView.setImageBitmap(images[position]);
+
             return imageView;
         }
     }

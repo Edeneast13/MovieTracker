@@ -43,6 +43,20 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements Pre
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+
+        switch (item.getItemId()){
+
+            case android.R.id.home:
+                this.finish();
+                return  true;
+        }
+
+        return super.onOptionsItemSelected(item);
+
+    }
+
+    @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
 
         String stringValue = newValue.toString();

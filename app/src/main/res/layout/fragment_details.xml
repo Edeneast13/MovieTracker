@@ -17,7 +17,8 @@
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:paddingTop="50dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingBottom="40dp">
 
         <ImageView
             android:layout_width="188dp"
