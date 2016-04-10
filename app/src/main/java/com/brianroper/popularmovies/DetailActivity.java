@@ -45,6 +45,7 @@ public class DetailActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
+                    .addToBackStack("settings")
                     .add(R.id.detail, new DetailsFragment())
                     .commit();
         }

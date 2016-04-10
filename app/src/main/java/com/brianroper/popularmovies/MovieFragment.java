@@ -59,7 +59,6 @@ public class MovieFragment extends Fragment{
     int count = 0;
     private GridView mGridView;
     private String mKey;
-    private FloatingActionButton fb;
 
     public MovieFragment() {
         // Required empty public constructor
@@ -269,26 +268,15 @@ public class MovieFragment extends Fragment{
         }
     }
 
-
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.movie_gridview, container, false);
         mGridView = (GridView) v.findViewById(R.id.gridview);
-        fb = (FloatingActionButton) getActivity().findViewById(R.id.fab2);
         mKey = getString(R.string.api_key);
 
         ButterKnife.bind(getActivity());
-
-        fb.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                getPosterDataFromFavoritesDb();
-            }
-        });
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sortPref = sharedPreferences.getString(getString(R.string.pref_sort_key),getString(R.string.pref_sort_popular));
@@ -307,7 +295,6 @@ public class MovieFragment extends Fragment{
 
             getPosterDataFromFavoritesDb();
         }
-
         return v;
     }
 

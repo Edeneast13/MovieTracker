@@ -23,58 +23,26 @@ import android.support.v4.app.NavUtils;
 
 import java.util.List;
 
-public class SettingsActivity extends AppCompatPreferenceActivity implements Preference.OnPreferenceChangeListener {
+public class SettingsActivity extends AppCompatPreferenceActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        addPreferencesFromResource(R.xml.pref_general);
-        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_sort_key)));
-    }
-    private void bindPreferenceSummaryToValue(Preference pref){
-
-        pref.setOnPreferenceChangeListener(this);
-
-        onPreferenceChange(pref, PreferenceManager
-                .getDefaultSharedPreferences(pref.getContext())
-                .getString(pref.getKey(), ""));
-
+            getFragmentManager().beginTransaction().replace(android.R.id.content, new MyPreferenceFragment())
+                    .commit();
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item){
+    public void onBackPressed() {
 
-        switch (item.getItemId()){
+        if(getFragmentManager().getBackStackEntryCount() >0){
 
-            case android.R.id.home:
-                this.finish();
-                return  true;
+            getFragmentManager().popBackStack();
         }
+        else{
 
-        return super.onOptionsItemSelected(item);
-
-    }
-
-    @Override
-    public boolean onPreferenceChange(Preference preference, Object newValue) {
-
-        String stringValue = newValue.toString();
-
-        if(preference instanceof ListPreference){
-
-            ListPreference listPreference = (ListPreference) preference;
-            int prefIndex = listPreference.findIndexOfValue(stringValue);
-
-            if(prefIndex >= 0){
-
-                preference.setSummary(listPreference.getEntries()[prefIndex]);
-            }
-            else{
-
-                preference.setSummary(stringValue);
-            }
+            super.onBackPressed();
         }
-        return true;
     }
 }
