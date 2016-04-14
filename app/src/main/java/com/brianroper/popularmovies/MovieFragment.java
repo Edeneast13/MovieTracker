@@ -1,5 +1,6 @@
 package com.brianroper.popularmovies;
 
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,6 +16,8 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -32,6 +35,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,37 +72,6 @@ public class MovieFragment extends Fragment{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem menu){
-
-        int id = menu.getItemId();
-
-        if(id == R.id.action_settings){
-
-            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String sortPref = sharedPreferences.getString(getString(R.string.pref_sort_key),getString(R.string.pref_sort_popular));
-
-            if(sortPref.equals("popular")){
-
-                getMovieDataFromApi();
-            }
-            else if(sortPref.equals("rating")){
-
-                getMovieDataFromApi();
-            }
-            else{
-
-                getPosterDataFromFavoritesDb();
-            }
-
-            Log.i("SORTPREF", sortPref.toString());
-
-
-            return true;
-        }
-        return super.onOptionsItemSelected(menu);
     }
 
     public String getPosterPathFromJson(String movieId){
@@ -184,19 +158,44 @@ public class MovieFragment extends Fragment{
         String[] postersArray = new String[posterUrlArray.size()];
         postersArray = posterUrlArray.toArray(postersArray);
 
+        String movie = movieIdArray.get(0);
+
+        Bundle args = new Bundle();
+        args.putString("movieId", movie);
+        args.putString("status", "online");
+        MovieFragment movieFragment = new MovieFragment();
+        movieFragment.setArguments(args);
+
         GridViewAdapter adapter = new GridViewAdapter(getActivity(), getId(), postersArray);
         mGridView.setAdapter(adapter);
         mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                Intent i = new Intent(getActivity(), DetailActivity.class);
                 String movie ="";
-
                 movie = movieIdArray.get(position);
-                i.putExtra("MOVIEID", movie);
-                i.putExtra("STATUS", "online");
-                startActivity(i);
+
+                if(view.findViewById(R.id.movie_detail_container) == null){
+
+                    Bundle args = new Bundle();
+
+                    DetailActivity.DetailsFragment detailsFragment = new DetailActivity.DetailsFragment();
+
+                    args.putString("movieId", movie);
+                    args.putString("status", "online");
+                    detailsFragment.setArguments(args);
+
+                    getFragmentManager().beginTransaction()
+                            .replace(R.id.movie_detail_container, detailsFragment)
+                            .commit();
+                }
+                else{
+
+                    Intent i = new Intent(getActivity(), DetailActivity.class);
+                    i.putExtra("MOVIEID", movie);
+                    i.putExtra("STATUS", "online");
+                    startActivity(i);
+                }
             }
         });
     }
@@ -247,6 +246,18 @@ public class MovieFragment extends Fragment{
             BitmapGridViewAdapter adapter = new BitmapGridViewAdapter(getActivity(), getId(), postersArray);
             mGridView.setAdapter(adapter);
             final Bitmap[] finalPostersArray = postersArray;
+
+            Bitmap bitmap = finalPostersArray[0];
+            byte[] bytes = DbBitmapUtil.convertBitmapToByteArray(bitmap);
+
+            String posterBytes = Base64.encodeToString(bytes, Base64.DEFAULT);
+            String t = titlesFromFavoritesArray.get(0);
+
+            PreferenceManager.getDefaultSharedPreferences(getContext())
+                    .edit()
+                    .putString("POSTER", posterBytes)
+                    .putString("TITLE", t)
+                    .commit();
 
             mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override

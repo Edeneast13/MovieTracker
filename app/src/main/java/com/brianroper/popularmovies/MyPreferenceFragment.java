@@ -35,6 +35,9 @@ public class MyPreferenceFragment extends PreferenceFragment implements SharedPr
         ListPreference listPreference = (ListPreference) findPreference(getString(R.string.pref_sort_key));
         listPreference.setSummary("dummy");
         listPreference.setSummary(getString(R.string.pref_sort_key) + ": %s");
+
+        Intent i = new Intent(getActivity(), MainActivity.class);
+        startActivity(i);
     }
 
     @Override

@@ -19,6 +19,8 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
+    private boolean mTwoPane;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,11 +30,23 @@ public class MainActivity extends AppCompatActivity {
 
         activeNetworkCheck();
 
-            if (savedInstanceState == null) {
-                getSupportFragmentManager().beginTransaction()
-                        .add(R.id.movie, new MovieFragment())
+        if(findViewById(R.id.movie_detail_container) != null){
+
+            mTwoPane = true;
+
+            PlaceholderFragment placeholderFragment = new PlaceholderFragment();
+
+            if(savedInstanceState == null){
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.movie_detail_container, placeholderFragment)
                         .commit();
             }
+        }
+        else{
+            mTwoPane =false;
+
+        }
     }
 
     /*Checks to see if the device has an active network connection */

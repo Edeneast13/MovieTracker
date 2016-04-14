@@ -29,7 +29,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-            getFragmentManager().beginTransaction().replace(android.R.id.content, new MyPreferenceFragment())
+            getFragmentManager().beginTransaction().addToBackStack("settings").replace(android.R.id.content, new MyPreferenceFragment())
                     .commit();
     }
 
@@ -38,11 +38,23 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
         if(getFragmentManager().getBackStackEntryCount() >0){
 
+            finish();
             getFragmentManager().popBackStack();
         }
         else{
-
+            finish();
             super.onBackPressed();
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                this.finish();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

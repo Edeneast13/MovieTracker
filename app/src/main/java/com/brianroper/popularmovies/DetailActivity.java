@@ -3,6 +3,7 @@ package com.brianroper.popularmovies;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
@@ -10,11 +11,13 @@ import android.database.sqlite.SQLiteQuery;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +36,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
+import butterknife.Bind;
+
 public class DetailActivity extends AppCompatActivity {
 
     @Override
@@ -46,12 +51,12 @@ public class DetailActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .addToBackStack("settings")
-                    .add(R.id.detail, new DetailsFragment())
+                    .add(R.id.movie_detail_container, new DetailsFragment())
                     .commit();
         }
     }
 
-    public class DetailsFragment extends Fragment{
+    public static class DetailsFragment extends Fragment{
 
         //Data
         private String mTitle ="";
@@ -68,6 +73,7 @@ public class DetailActivity extends AppCompatActivity {
         private String mContent = "";
         private byte[] mBitmapFromFavorites;
         private String mTitleFromFavorites = "";
+        private String mStatus = "";
         //views
         private TextView mTitleTextView;
         private TextView mReleaseDateTextView;
@@ -92,8 +98,8 @@ public class DetailActivity extends AppCompatActivity {
         final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
         final String POSTER_SIZE_PARAM = "w370";
 
-        public DetailsFragment() {
-            // Required empty public constructor
+        public void DetailsFragment(){
+
         }
 
         //updates the views to display live data
@@ -238,7 +244,7 @@ public class DetailActivity extends AppCompatActivity {
 
             mReview = "Author: " + mAuthor + "\n" + mContent;
 
-            Picasso.with(mContext).load(BASE_POSTER_URL+POSTER_SIZE_PARAM+mPosterPath).into(mPosterImage);
+            Picasso.with(getContext()).load(BASE_POSTER_URL+POSTER_SIZE_PARAM+mPosterPath).into(mPosterImage);
             updateDetailViews();
 
             mTrailerTextView.setOnClickListener(new View.OnClickListener() {
@@ -333,7 +339,9 @@ public class DetailActivity extends AppCompatActivity {
                 c.close();
             }
 
-            mPosterImage.setImageBitmap(DbBitmapUtil.convertByteArrayToBitmap(mBitmapFromFavorites));
+            Log.i("BITMAP", mBitmapFromFavorites.toString());
+            Bitmap bitmap = DbBitmapUtil.convertByteArrayToBitmap(mBitmapFromFavorites);
+            mPosterImage.setImageBitmap(bitmap);
 
             CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams)
                     mFloatingActionButton.getLayoutParams();
@@ -354,47 +362,86 @@ public class DetailActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
 
-            mTitleTextView = (TextView)getActivity().findViewById(R.id.movie_title);
-            mReleaseDateTextView = (TextView)getActivity().findViewById(R.id.release_date);
-            mRatingTextView = (TextView)getActivity().findViewById(R.id.rating);
-            mOverviewTextView = (TextView)getActivity().findViewById(R.id.plot_overview);
-            mPosterImage = (ImageView)getActivity().findViewById(R.id.poster_thumbnail);
+            View v = inflater.inflate(R.layout.fragment_details, container, false);
+
+            mTitleTextView = (TextView)v.findViewById(R.id.movie_title);
+            mReleaseDateTextView = (TextView)v.findViewById(R.id.release_date);
+            mRatingTextView = (TextView)v.findViewById(R.id.rating);
+            mOverviewTextView = (TextView)v.findViewById(R.id.plot_overview);
+            mPosterImage = (ImageView)v.findViewById(R.id.poster_thumbnail);
             mFloatingActionButton = (FloatingActionButton)getActivity().findViewById(R.id.fab);
-            mTrailerTextView = (TextView)getActivity().findViewById(R.id.trailer_textview);
-            mReviewTextView = (TextView)getActivity().findViewById(R.id.review_textview);
+            mTrailerTextView = (TextView)v.findViewById(R.id.trailer_textview);
+            mReviewTextView = (TextView)v.findViewById(R.id.review_textview);
             mKey = getString(R.string.api_key);
 
             Intent i = getActivity().getIntent();
 
-            try {
-                mMovieId = i.getStringExtra("MOVIEID");
+            Bundle args = getArguments();
+
+            if(args != null){
+
+                mMovieId = args.getString("movieId");
+                mStatus = args.getString("status");
+                Log.i("movieId: ", mMovieId);
+                Log.i("status: ", mStatus);
             }
-            catch (Exception e){
-                e.printStackTrace();
+            else if(args == null){
+
+                try{
+
+                    mMovieId = i.getStringExtra("MOVIEID");
+                    mStatus = i.getStringExtra("STATUS");
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
             }
 
-            try{
-
-               mBitmapFromFavorites = i.getByteArrayExtra("POSTER");
-               mTitleFromFavorites = i.getStringExtra("TITLE");
-            }
-            catch (Exception e){
-                e.printStackTrace();
-            }
-
-            String status = i.getStringExtra("STATUS");
-
-            if (status.equals("online")){
+           if (mStatus.equals("online")){
 
                 populateDetailViewOnline();
             }
-            else if(status.equals("offline")){
+            else if(mStatus.equals("offline")){
+
+               try{
+
+                   if(mBitmapFromFavorites == null){
+
+                       String bytes = PreferenceManager.getDefaultSharedPreferences(getContext())
+                               .getString("POSTER", "");
+
+                       byte[] array = Base64.decode(bytes, Base64.DEFAULT);
+
+                       mBitmapFromFavorites = array;
+                   }
+                   else{
+
+                       mBitmapFromFavorites = i.getByteArrayExtra("POSTER");
+                   }
+
+                   if(mTitleFromFavorites == null){
+
+                       String title = PreferenceManager.getDefaultSharedPreferences(getContext())
+                               .getString("TITLE", "");
+
+                       mTitleFromFavorites = title;
+                       Log.i("TITLE", mTitle);
+                   }
+                   else{
+
+                       mTitleFromFavorites = i.getStringExtra("TITLE");
+                       Log.i("TITLE", mTitle);
+                   }
+               }
+               catch (Exception e){
+                   e.printStackTrace();
+               }
 
                 mTitle = mTitleFromFavorites;
                 populateDetailViewOffline();
-            }
+            };
             // Inflate the layout for this fragment
-            return inflater.inflate(R.layout.fragment_details, container, false);
+            return v;
         }
     }
 }
