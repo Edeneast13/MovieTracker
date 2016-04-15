@@ -29,7 +29,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-            getFragmentManager().beginTransaction().addToBackStack("settings").replace(android.R.id.content, new MyPreferenceFragment())
+            getFragmentManager().beginTransaction()
+                    .addToBackStack("settings")
+                    .replace(android.R.id.content, new MyPreferenceFragment())
                     .commit();
     }
 

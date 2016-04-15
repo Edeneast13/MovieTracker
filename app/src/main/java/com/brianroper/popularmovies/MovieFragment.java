@@ -52,6 +52,7 @@ public class MovieFragment extends Fragment{
     private ArrayList<String> titlesFromFavoritesArray = new ArrayList<String>();
     private String movieId = "";
     private String poster = "";
+    private Boolean mTwoPane;
     final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
     final String BASE_JSON_REQUEST = "api.themoviedb.org";
     final String JSON_REQUEST_PARAM = "3";
@@ -175,7 +176,18 @@ public class MovieFragment extends Fragment{
                 String movie ="";
                 movie = movieIdArray.get(position);
 
-                if(view.findViewById(R.id.movie_detail_container) == null){
+                SharedPreferences screenState = PreferenceManager.getDefaultSharedPreferences(getContext());
+                mTwoPane = screenState.getBoolean("State",true);
+
+                if(mTwoPane == false){
+
+                    Intent i = new Intent(getActivity(), DetailActivity.class);
+                    i.putExtra("MOVIEID", movie);
+                    i.putExtra("STATUS", "online");
+                    startActivity(i);
+                }
+
+                else if(mTwoPane == true){
 
                     Bundle args = new Bundle();
 
@@ -188,13 +200,6 @@ public class MovieFragment extends Fragment{
                     getFragmentManager().beginTransaction()
                             .replace(R.id.movie_detail_container, detailsFragment)
                             .commit();
-                }
-                else{
-
-                    Intent i = new Intent(getActivity(), DetailActivity.class);
-                    i.putExtra("MOVIEID", movie);
-                    i.putExtra("STATUS", "online");
-                    startActivity(i);
                 }
             }
         });

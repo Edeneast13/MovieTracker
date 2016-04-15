@@ -47,6 +47,7 @@ public class DetailActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(getString(R.string.detail_frag_toolbar_title));
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
@@ -270,39 +271,6 @@ public class DetailActivity extends AppCompatActivity {
                     }
                 }
             });
-
-            mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                    try {
-                        DBHandler dbHandler = new DBHandler(getContext());
-
-                        SQLiteDatabase db;
-                        db = dbHandler.getWritableDatabase();
-
-                        ImageView mPosterRef = mPosterImage;
-                        Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
-                        byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
-
-                        ContentValues values = new ContentValues();
-                        values.put("title", mTitle);
-                        values.put("release", mReleaseDate);
-                        values.put("rating", mRating);
-                        values.put("overview", mOverview);
-                        values.put("review", mReview);
-                        values.put("poster", posterByteArray);
-                        Log.i("POSTER BYTE ARRAY: ", posterByteArray.toString());
-
-                        db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
-
-                        Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
-                    }
-                    catch (Exception e){
-                        e.printStackTrace();
-                    }
-                }
-            });
         }
 
         public void populateDetailViewOffline(){
@@ -353,6 +321,36 @@ public class DetailActivity extends AppCompatActivity {
             updateDetailViews();
         }
 
+        public void saveToFavorites(View v){
+
+            try {
+                DBHandler dbHandler = new DBHandler(getContext());
+
+                SQLiteDatabase db;
+                db = dbHandler.getWritableDatabase();
+
+                ImageView mPosterRef = mPosterImage;
+                Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
+                byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
+
+                ContentValues values = new ContentValues();
+                values.put("title", mTitle);
+                values.put("release", mReleaseDate);
+                values.put("rating", mRating);
+                values.put("overview", mOverview);
+                values.put("review", mReview);
+                values.put("poster", posterByteArray);
+                Log.i("POSTER BYTE ARRAY: ", posterByteArray.toString());
+
+                db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+
+                Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -369,7 +367,7 @@ public class DetailActivity extends AppCompatActivity {
             mRatingTextView = (TextView)v.findViewById(R.id.rating);
             mOverviewTextView = (TextView)v.findViewById(R.id.plot_overview);
             mPosterImage = (ImageView)v.findViewById(R.id.poster_thumbnail);
-            mFloatingActionButton = (FloatingActionButton)getActivity().findViewById(R.id.fab);
+            mFloatingActionButton = (FloatingActionButton)getActivity().findViewById(R.id.favorites_fab);
             mTrailerTextView = (TextView)v.findViewById(R.id.trailer_textview);
             mReviewTextView = (TextView)v.findViewById(R.id.review_textview);
             mKey = getString(R.string.api_key);

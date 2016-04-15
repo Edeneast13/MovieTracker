@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle(getString(R.string.movie_frag_toolbar_title));
 
         activeNetworkCheck();
 
@@ -47,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
             mTwoPane =false;
 
         }
+
+        SharedPreferences screenState = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        screenState.edit().putBoolean("State", mTwoPane).commit();
     }
 
     /*Checks to see if the device has an active network connection */

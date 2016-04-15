@@ -93,4 +93,7 @@
     <string name="api_key">a0a454fc960bf4f69fa0adf5e13161cf</string>
     <string name="title_activity_favorites">FavoritesActivity</string>
 
+    <string name="movie_frag_toolbar_title">Popular Movies</string>
+    <string name="detail_frag_toolbar_title">Movie Details</string>
+
 </resources>
