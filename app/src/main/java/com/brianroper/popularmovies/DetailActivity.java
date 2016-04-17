@@ -20,6 +20,9 @@ import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -265,6 +268,38 @@ public class DetailActivity extends AppCompatActivity {
                         String fullYoutubeUrl = videoBuilder.build().toString();
 
                         playVideoInYouTubeApp(fullYoutubeUrl);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    try {
+                        DBHandler dbHandler = new DBHandler(getContext());
+
+                        SQLiteDatabase db;
+                        db = dbHandler.getWritableDatabase();
+
+                        ImageView mPosterRef = mPosterImage;
+                        Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
+                        byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
+
+                        ContentValues values = new ContentValues();
+                        values.put("title", mTitle);
+                        values.put("release", mReleaseDate);
+                        values.put("rating", mRating);
+                        values.put("overview", mOverview);
+                        values.put("review", mReview);
+                        values.put("poster", posterByteArray);
+                        Log.i("POSTER BYTE ARRAY: ", posterByteArray.toString());
+
+                        db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+
+                        Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
                     }
                     catch (Exception e){
                         e.printStackTrace();
@@ -287,27 +322,22 @@ public class DetailActivity extends AppCompatActivity {
                 int releaseIndex = c.getColumnIndex("release");
                 c.moveToFirst();
                 mReleaseDate = c.getString(releaseIndex);
-                Log.i("MOVIEDATA: ", mReleaseDate);
 
                 int ratingIndex = c.getColumnIndex("rating");
                 c.moveToFirst();
                 mRating = c.getString(ratingIndex);
-                Log.i("MOVIEDATA: ", mRating);
 
                 int overviewIndex = c.getColumnIndex("overview");
                 c.moveToFirst();
                 mOverview = c.getString(overviewIndex);
-                Log.i("MOVIEDATA: ", mOverview);
 
                 int reviewIndex = c.getColumnIndex("review");
                 c.moveToFirst();
                 mReview = c.getString(reviewIndex);
-                Log.i("MOVIEDATA: ", mReview);
 
                 c.close();
             }
 
-            Log.i("BITMAP", mBitmapFromFavorites.toString());
             Bitmap bitmap = DbBitmapUtil.convertByteArrayToBitmap(mBitmapFromFavorites);
             mPosterImage.setImageBitmap(bitmap);
 
@@ -321,39 +351,18 @@ public class DetailActivity extends AppCompatActivity {
             updateDetailViews();
         }
 
-        public void saveToFavorites(View v){
-
-            try {
-                DBHandler dbHandler = new DBHandler(getContext());
-
-                SQLiteDatabase db;
-                db = dbHandler.getWritableDatabase();
-
-                ImageView mPosterRef = mPosterImage;
-                Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
-                byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
-
-                ContentValues values = new ContentValues();
-                values.put("title", mTitle);
-                values.put("release", mReleaseDate);
-                values.put("rating", mRating);
-                values.put("overview", mOverview);
-                values.put("review", mReview);
-                values.put("poster", posterByteArray);
-                Log.i("POSTER BYTE ARRAY: ", posterByteArray.toString());
-
-                db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
-
-                Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
-            }
-            catch (Exception e){
-                e.printStackTrace();
-            }
-        }
-
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+
+            setHasOptionsMenu(true);
+        }
+
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            menu.clear();
+            inflater.inflate(R.menu.menu_main, menu);
+            super.onCreateOptionsMenu(menu, inflater);
         }
 
         @Override
@@ -366,10 +375,11 @@ public class DetailActivity extends AppCompatActivity {
             mReleaseDateTextView = (TextView)v.findViewById(R.id.release_date);
             mRatingTextView = (TextView)v.findViewById(R.id.rating);
             mOverviewTextView = (TextView)v.findViewById(R.id.plot_overview);
-            mPosterImage = (ImageView)v.findViewById(R.id.poster_thumbnail);
+            mPosterImage = (ImageView) v.findViewById(R.id.poster_thumbnail);
             mFloatingActionButton = (FloatingActionButton)getActivity().findViewById(R.id.favorites_fab);
             mTrailerTextView = (TextView)v.findViewById(R.id.trailer_textview);
             mReviewTextView = (TextView)v.findViewById(R.id.review_textview);
+
             mKey = getString(R.string.api_key);
 
             Intent i = getActivity().getIntent();

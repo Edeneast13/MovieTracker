@@ -123,37 +123,47 @@ public class MovieFragment extends Fragment{
             FetchMovieTask movieTask = new FetchMovieTask();
             String htmlData = movieTask.execute(myUrl).get();
 
-            //splits the webpage source code to ignore unnecessary code
-            String[] splitHtmlData = htmlData.split("<div class=\"pagination\">");
+            if (htmlData != null) {
 
-            //picks out movie id's from web page source code
-            Pattern idPattern = Pattern.compile("id=\"movie_(.*?)\"");
-            Matcher idMatcher = idPattern.matcher(splitHtmlData[0]);
+                //splits the webpage source code to ignore unnecessary code
+                String[] splitHtmlData = htmlData.split("<div class=\"pagination\">");
 
-            while(idMatcher.find()){
+                //picks out movie id's from web page source code
+                Pattern idPattern = Pattern.compile("id=\"movie_(.*?)\"");
+                Matcher idMatcher = idPattern.matcher(splitHtmlData[0]);
 
-                movieIdArray.add(idMatcher.group(1));
+                while (idMatcher.find()) {
+
+                    movieIdArray.add(idMatcher.group(1));
+                }
+
+                for (int i = 0; i < movieIdArray.size(); i++) {
+                    count++;
+                    movieIdArray.remove(count);
+                }
+
+                //creates new Movie objects that store movie id and poster url
+                for (int i = 0; i < movieIdArray.size(); i++) {
+                    Movie movie = new Movie();
+                    movieId = movieIdArray.get(i);
+                    movie.setId(movieId);
+                    poster = getPosterPathFromJson(movie.getId());
+                    movie.setPosterUrl(poster);
+                    posterUrlArray.add(movie.getPosterUrl());
+                }
             }
-
-            for (int i = 0; i < movieIdArray.size(); i++) {
-                count++;
-                movieIdArray.remove(count);
-            }
-
-            //creates new Movie objects that store movie id and poster url
-            for (int i = 0; i < movieIdArray.size(); i++) {
-                Movie movie = new Movie();
-                movieId = movieIdArray.get(i);
-                movie.setId(movieId);
-                poster = getPosterPathFromJson(movie.getId());
-                movie.setPosterUrl(poster);
-                posterUrlArray.add(movie.getPosterUrl());
+            else{
+                Toast.makeText(getActivity(), "Network currently not available", Toast.LENGTH_LONG)
+                        .show();
             }
         }
         catch(InterruptedException e){
             e.printStackTrace();
         }
         catch (ExecutionException e){
+            e.printStackTrace();
+        }
+        catch (Exception e){
             e.printStackTrace();
         }
         String[] postersArray = new String[posterUrlArray.size()];
