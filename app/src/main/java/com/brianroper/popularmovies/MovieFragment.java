@@ -89,13 +89,16 @@ public class MovieFragment extends Fragment{
             builder.appendQueryParameter(API_KEY_PARAM, mKey);
             String myUrl = builder.build().toString();
 
-            FetchMovieTask posterPathTask = new FetchMovieTask();
-            String jsonData = posterPathTask
-                    .execute(myUrl)
-                    .get();
-            JSONObject jsonObject = new JSONObject(jsonData);
-            String posterPath = jsonObject.getString("poster_path");
-            posterUrl = BASE_POSTER_URL+POSTER_SIZE_PARAM+posterPath;
+            if(NetworkUtil.activeNetworkCheck(getActivity())){
+
+                FetchMovieTask posterPathTask = new FetchMovieTask();
+                String jsonData = posterPathTask
+                        .execute(myUrl)
+                        .get();
+                JSONObject jsonObject = new JSONObject(jsonData);
+                String posterPath = jsonObject.getString("poster_path");
+                posterUrl = BASE_POSTER_URL+POSTER_SIZE_PARAM+posterPath;
+            }
         }
         catch (InterruptedException e){
             e.printStackTrace();
@@ -111,18 +114,22 @@ public class MovieFragment extends Fragment{
 
     public void getMovieDataFromApi(){
 
+        String htmlData = "";
+
         try {
-            //https://www.themoviedb.org/movie
-            Uri.Builder builder = new Uri.Builder();
-            builder.scheme("https");
-            builder.authority("www.themoviedb.org");
-            builder.appendPath(sortParameter);
-            String myUrl = builder.build().toString();
+            if(NetworkUtil.activeNetworkCheck(getActivity())) {
+                //https://www.themoviedb.org/movie
+                Uri.Builder builder = new Uri.Builder();
+                builder.scheme("https");
+                builder.authority("www.themoviedb.org");
+                builder.appendPath(sortParameter);
+                String myUrl = builder.build().toString();
 
-            //retrieves html data from themoviedb.org and sets it to the htmlData variable
-            FetchMovieTask movieTask = new FetchMovieTask();
-            String htmlData = movieTask.execute(myUrl).get();
+                //retrieves html data from themoviedb.org and sets it to the htmlData variable
+                FetchMovieTask movieTask = new FetchMovieTask();
+                htmlData = movieTask.execute(myUrl).get();
 
+            }
             if (htmlData != null) {
 
                 //splits the webpage source code to ignore unnecessary code
@@ -151,6 +158,54 @@ public class MovieFragment extends Fragment{
                     movie.setPosterUrl(poster);
                     posterUrlArray.add(movie.getPosterUrl());
                 }
+
+                String[] postersArray = new String[posterUrlArray.size()];
+                postersArray = posterUrlArray.toArray(postersArray);
+
+                String movie = movieIdArray.get(0);
+
+                Bundle args = new Bundle();
+                args.putString("movieId", movie);
+                args.putString("status", "online");
+                MovieFragment movieFragment = new MovieFragment();
+                movieFragment.setArguments(args);
+
+                GridViewAdapter adapter = new GridViewAdapter(getActivity(), getId(), postersArray);
+                mGridView.setAdapter(adapter);
+                mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                        String movie ="";
+                        movie = movieIdArray.get(position);
+
+                        SharedPreferences screenState = PreferenceManager.getDefaultSharedPreferences(getContext());
+                        mTwoPane = screenState.getBoolean("State",true);
+
+                        if(mTwoPane == false){
+
+                            Intent i = new Intent(getActivity(), DetailActivity.class);
+                            i.putExtra("MOVIEID", movie);
+                            i.putExtra("STATUS", "online");
+                            startActivity(i);
+                        }
+
+                        else if(mTwoPane == true){
+
+                            Bundle args = new Bundle();
+
+                            DetailActivity.DetailsFragment detailsFragment = new DetailActivity.DetailsFragment();
+
+                            args.putString("movieId", movie);
+                            args.putString("status", "online");
+                            detailsFragment.setArguments(args);
+
+                            getFragmentManager().beginTransaction()
+                                    .replace(R.id.movie_detail_container, detailsFragment)
+                                    .commit();
+                        }
+                    }
+                });
             }
             else{
                 Toast.makeText(getActivity(), "Network currently not available", Toast.LENGTH_LONG)
@@ -166,53 +221,6 @@ public class MovieFragment extends Fragment{
         catch (Exception e){
             e.printStackTrace();
         }
-        String[] postersArray = new String[posterUrlArray.size()];
-        postersArray = posterUrlArray.toArray(postersArray);
-
-        String movie = movieIdArray.get(0);
-
-        Bundle args = new Bundle();
-        args.putString("movieId", movie);
-        args.putString("status", "online");
-        MovieFragment movieFragment = new MovieFragment();
-        movieFragment.setArguments(args);
-
-        GridViewAdapter adapter = new GridViewAdapter(getActivity(), getId(), postersArray);
-        mGridView.setAdapter(adapter);
-        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                String movie ="";
-                movie = movieIdArray.get(position);
-
-                SharedPreferences screenState = PreferenceManager.getDefaultSharedPreferences(getContext());
-                mTwoPane = screenState.getBoolean("State",true);
-
-                if(mTwoPane == false){
-
-                    Intent i = new Intent(getActivity(), DetailActivity.class);
-                    i.putExtra("MOVIEID", movie);
-                    i.putExtra("STATUS", "online");
-                    startActivity(i);
-                }
-
-                else if(mTwoPane == true){
-
-                    Bundle args = new Bundle();
-
-                    DetailActivity.DetailsFragment detailsFragment = new DetailActivity.DetailsFragment();
-
-                    args.putString("movieId", movie);
-                    args.putString("status", "online");
-                    detailsFragment.setArguments(args);
-
-                    getFragmentManager().beginTransaction()
-                            .replace(R.id.movie_detail_container, detailsFragment)
-                            .commit();
-                }
-            }
-        });
     }
 
     //populates grid view with posters from the local database

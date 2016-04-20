@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQuery;
@@ -117,66 +118,64 @@ public class DetailActivity extends AppCompatActivity {
             mReviewTextView.setText(mReview);
         }
 
-        public void retrieveTrailerJson(String url){
+        public void retrieveTrailerJson(String url) {
 
-            try{
+            if (NetworkUtil.activeNetworkCheck(getActivity())) {
+                try {
 
-                FetchDetailsTask trailerTask = new FetchDetailsTask();
-                String trailerData = trailerTask.execute(url).get();
-                //key param from json
-                JSONObject trailerJsonObject = new JSONObject(trailerData);
-                JSONArray trailerJsonArray = trailerJsonObject.getJSONArray("results");
+                    FetchDetailsTask trailerTask = new FetchDetailsTask();
+                    String trailerData = trailerTask.execute(url).get();
+                    //key param from json
+                    JSONObject trailerJsonObject = new JSONObject(trailerData);
+                    JSONArray trailerJsonArray = trailerJsonObject.getJSONArray("results");
 
-                for (int i = 0; i < trailerJsonArray.length(); i++) {
+                    for (int i = 0; i < trailerJsonArray.length(); i++) {
 
-                    JSONObject arrayElement = trailerJsonArray.getJSONObject(i);
-                    String key = arrayElement.getString("key");
-                    mTrailer = key;
+                        JSONObject arrayElement = trailerJsonArray.getJSONObject(i);
+                        String key = arrayElement.getString("key");
+                        mTrailer = key;
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
                 }
-            }
-            catch (JSONException e){
-                e.printStackTrace();
-            }
-            catch (InterruptedException e){
-                e.printStackTrace();
-            }
-            catch (ExecutionException e){
-                e.printStackTrace();
             }
         }
 
-        public void retrieveReviewJson(String url){
+        public void retrieveReviewJson(String url) {
 
-            try{
+            if (NetworkUtil.activeNetworkCheck(getActivity())) {
+                try {
 
-                FetchDetailsTask reviewTask = new FetchDetailsTask();
-                String reviewData = reviewTask.execute(url).get();
+                    FetchDetailsTask reviewTask = new FetchDetailsTask();
+                    String reviewData = reviewTask.execute(url).get();
 
-                JSONObject reviewJsonObject = new JSONObject(reviewData);
-                JSONArray reviewJsonArray = reviewJsonObject.getJSONArray("results");
+                    JSONObject reviewJsonObject = new JSONObject(reviewData);
+                    JSONArray reviewJsonArray = reviewJsonObject.getJSONArray("results");
 
-                for (int i = 0; i < reviewJsonArray.length(); i++) {
+                    for (int i = 0; i < reviewJsonArray.length(); i++) {
 
-                    JSONObject arrayElement = reviewJsonArray.getJSONObject(i);
-                    String author = arrayElement.getString("author");
-                    String content = arrayElement.getString("content");
+                        JSONObject arrayElement = reviewJsonArray.getJSONObject(i);
+                        String author = arrayElement.getString("author");
+                        String content = arrayElement.getString("content");
 
-                    Review review = new Review();
-                    review.setAuthor(author);
-                    review.setContent(content);
+                        Review review = new Review();
+                        review.setAuthor(author);
+                        review.setContent(content);
 
-                    mAuthor = review.getAuthor();
-                    mContent = review.getContent();
+                        mAuthor = review.getAuthor();
+                        mContent = review.getContent();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
                 }
-            }
-            catch (JSONException e){
-                e.printStackTrace();
-            }
-            catch (InterruptedException e){
-                e.printStackTrace();
-            }
-            catch (ExecutionException e){
-                e.printStackTrace();
             }
         }
 
@@ -185,127 +184,200 @@ public class DetailActivity extends AppCompatActivity {
             Intent i = new Intent(Intent.ACTION_VIEW);
             i.setPackage("com.google.android.youtube");
             i.setData(Uri.parse(url));
-            startActivity(i);
+
+            if(i.resolveActivity(getActivity().getPackageManager()) != null){
+
+                startActivity(i);
+            }
         }
 
         public void populateDetailViewOnline(){
 
-            Uri.Builder builder = new Uri.Builder();
-            builder.scheme("https");
-            builder.authority(BASE_JSON_REQUEST);
-            builder.appendPath(JSON_REQUEST_PARAM);
-            builder.appendPath(MOVIE_JSON_REQUEST);
-            builder.appendPath(mMovieId);
-            builder.appendQueryParameter(API_KEY_PARAM, mKey);
+            if(NetworkUtil.activeNetworkCheck(getActivity())) {
 
-            String myUrl = builder.build().toString();
+                Uri.Builder builder = new Uri.Builder();
+                builder.scheme("https");
+                builder.authority(BASE_JSON_REQUEST);
+                builder.appendPath(JSON_REQUEST_PARAM);
+                builder.appendPath(MOVIE_JSON_REQUEST);
+                builder.appendPath(mMovieId);
+                builder.appendQueryParameter(API_KEY_PARAM, mKey);
 
-            Uri.Builder trailerRequest = new Uri.Builder();
-            trailerRequest.scheme("https");
-            trailerRequest.authority(BASE_JSON_REQUEST);
-            trailerRequest.appendPath(JSON_REQUEST_PARAM);
-            trailerRequest.appendPath(MOVIE_JSON_REQUEST);
-            trailerRequest.appendPath(mMovieId);
-            trailerRequest.appendPath(TRAILER_JSON_REQUEST);
-            trailerRequest.appendQueryParameter(API_KEY_PARAM, mKey);
+                String myUrl = builder.build().toString();
 
-            mTrailerUrl = trailerRequest.build().toString();
+                Uri.Builder trailerRequest = new Uri.Builder();
+                trailerRequest.scheme("https");
+                trailerRequest.authority(BASE_JSON_REQUEST);
+                trailerRequest.appendPath(JSON_REQUEST_PARAM);
+                trailerRequest.appendPath(MOVIE_JSON_REQUEST);
+                trailerRequest.appendPath(mMovieId);
+                trailerRequest.appendPath(TRAILER_JSON_REQUEST);
+                trailerRequest.appendQueryParameter(API_KEY_PARAM, mKey);
 
-            Uri.Builder reviewRequest = new Uri.Builder();
-            reviewRequest.scheme("https");
-            reviewRequest.authority(BASE_JSON_REQUEST);
-            reviewRequest.appendPath(JSON_REQUEST_PARAM);
-            reviewRequest.appendPath(MOVIE_JSON_REQUEST);
-            reviewRequest.appendPath(mMovieId);
-            reviewRequest.appendPath(REVIEW_JSON_REQUEST);
-            reviewRequest.appendQueryParameter(API_KEY_PARAM, mKey);
+                mTrailerUrl = trailerRequest.build().toString();
 
-            mReviewUrl = reviewRequest.build().toString();
+                Uri.Builder reviewRequest = new Uri.Builder();
+                reviewRequest.scheme("https");
+                reviewRequest.authority(BASE_JSON_REQUEST);
+                reviewRequest.appendPath(JSON_REQUEST_PARAM);
+                reviewRequest.appendPath(MOVIE_JSON_REQUEST);
+                reviewRequest.appendPath(mMovieId);
+                reviewRequest.appendPath(REVIEW_JSON_REQUEST);
+                reviewRequest.appendQueryParameter(API_KEY_PARAM, mKey);
 
-            try{
+                mReviewUrl = reviewRequest.build().toString();
 
-                FetchDetailsTask detailTask = new FetchDetailsTask();
-                String jsonData = detailTask.execute(myUrl).get();
+                try {
 
-                JSONObject jsonObject = new JSONObject(jsonData);
-                mPosterPath = jsonObject.getString("poster_path");
-                mOverview = jsonObject.getString("overview");
-                mTitle = jsonObject.getString("original_title");
-                mReleaseDate = jsonObject.getString("release_date");
-                mRating = jsonObject.getString("vote_average");
-            }
-            catch(JSONException e){
-                e.printStackTrace();
-            }
-            catch(InterruptedException e){
-                e.printStackTrace();
-            }
-            catch(ExecutionException e){
-                e.printStackTrace();
-            }
+                    FetchDetailsTask detailTask = new FetchDetailsTask();
+                    String jsonData = detailTask.execute(myUrl).get();
 
-            retrieveReviewJson(mReviewUrl);
+                    JSONObject jsonObject = new JSONObject(jsonData);
+                    mPosterPath = jsonObject.getString("poster_path");
+                    mOverview = jsonObject.getString("overview");
+                    mTitle = jsonObject.getString("original_title");
+                    mReleaseDate = jsonObject.getString("release_date");
+                    mRating = jsonObject.getString("vote_average");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
 
-            mReview = "Author: " + mAuthor + "\n" + mContent;
+                retrieveReviewJson(mReviewUrl);
 
-            Picasso.with(getContext()).load(BASE_POSTER_URL+POSTER_SIZE_PARAM+mPosterPath).into(mPosterImage);
-            updateDetailViews();
+                mReview = "Author: " + mAuthor + "\n" + mContent;
 
-            mTrailerTextView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+                Picasso.with(getContext()).load(BASE_POSTER_URL + POSTER_SIZE_PARAM + mPosterPath).into(mPosterImage);
+                updateDetailViews();
 
-                    try {
+                DBHandler dbHandler = new DBHandler(getContext());
 
-                        retrieveTrailerJson(mTrailerUrl);
+                SQLiteDatabase db;
 
-                        Uri.Builder videoBuilder = new Uri.Builder();
-                        videoBuilder.scheme("https");
-                        videoBuilder.authority(YOUTUBE_BASE_URL);
-                        videoBuilder.appendPath(YOUTUBE_WATCH_PARAM);
-                        videoBuilder.appendQueryParameter(YOUTUBE_VIDEO_ID_QUERY_PARAM, mTrailer);
+                db = dbHandler.getReadableDatabase();
 
-                        String fullYoutubeUrl = videoBuilder.build().toString();
+                try {
+                    Cursor c = db.rawQuery("SELECT * FROM movies WHERE title = \"" + mTitle + "\"", null);
+                    c.moveToFirst();
+                    int titleIndex = c.getColumnIndex("title");
+                    String title = c.getString(titleIndex);
 
-                        playVideoInYouTubeApp(fullYoutubeUrl);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    if (title.equals(mTitle)) {
+
+                        mFloatingActionButton.setImageResource(R.drawable.starempty);
+                    } else {
+
+                        mFloatingActionButton.setImageResource(R.drawable.starfull);
                     }
                 }
-            });
+                catch (CursorIndexOutOfBoundsException e){
+                    e.printStackTrace();
 
-            mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+                    mFloatingActionButton.setImageResource(R.drawable.starfull);
+                }
 
-                    try {
+
+                mTrailerTextView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        try {
+
+                            retrieveTrailerJson(mTrailerUrl);
+
+                            Uri.Builder videoBuilder = new Uri.Builder();
+                            videoBuilder.scheme("https");
+                            videoBuilder.authority(YOUTUBE_BASE_URL);
+                            videoBuilder.appendPath(YOUTUBE_WATCH_PARAM);
+                            videoBuilder.appendQueryParameter(YOUTUBE_VIDEO_ID_QUERY_PARAM, mTrailer);
+
+                            String fullYoutubeUrl = videoBuilder.build().toString();
+
+                            playVideoInYouTubeApp(fullYoutubeUrl);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+                mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
                         DBHandler dbHandler = new DBHandler(getContext());
 
                         SQLiteDatabase db;
-                        db = dbHandler.getWritableDatabase();
 
-                        ImageView mPosterRef = mPosterImage;
-                        Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
-                        byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
+                        try {
+                            db = dbHandler.getReadableDatabase();
 
-                        ContentValues values = new ContentValues();
-                        values.put("title", mTitle);
-                        values.put("release", mReleaseDate);
-                        values.put("rating", mRating);
-                        values.put("overview", mOverview);
-                        values.put("review", mReview);
-                        values.put("poster", posterByteArray);
-                        Log.i("POSTER BYTE ARRAY: ", posterByteArray.toString());
+                            Cursor c = db.rawQuery("SELECT * FROM movies WHERE title = \"" + mTitle + "\"", null);
+                            c.moveToFirst();
+                            int titleIndex = c.getColumnIndex("title");
+                            String title = c.getString(titleIndex);
 
-                        db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+                            if (title.equals(mTitle)) {
 
-                        Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
+                                mFloatingActionButton.setImageResource(R.drawable.starfull);
+
+                                db = dbHandler.getWritableDatabase();
+
+                                db.delete("movies", "title == " + "\"" + mTitle + "\"", null);
+
+                                Toast.makeText(getActivity(), getString(R.string.favorites_remove_toast),
+                                        Toast.LENGTH_LONG).show();
+                            } else if (!(title.equals(mTitle))) {
+
+                                mFloatingActionButton.setImageResource(R.drawable.starempty);
+
+                                db = dbHandler.getWritableDatabase();
+
+                                ImageView mPosterRef = mPosterImage;
+                                Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
+                                byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
+
+                                ContentValues values = new ContentValues();
+                                values.put("title", mTitle);
+                                values.put("release", mReleaseDate);
+                                values.put("rating", mRating);
+                                values.put("overview", mOverview);
+                                values.put("review", mReview);
+                                values.put("poster", posterByteArray);
+                                Log.i("POSTER BYTE ARRAY: ", posterByteArray.toString());
+
+                                db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+                                Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
+                            }
+                        } catch (CursorIndexOutOfBoundsException e) {
+                            db = dbHandler.getWritableDatabase();
+
+                            ImageView mPosterRef = mPosterImage;
+                            Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
+                            byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
+
+                            ContentValues values = new ContentValues();
+                            values.put("title", mTitle);
+                            values.put("release", mReleaseDate);
+                            values.put("rating", mRating);
+                            values.put("overview", mOverview);
+                            values.put("review", mReview);
+                            values.put("poster", posterByteArray);
+                            Log.i("POSTER BYTE ARRAY: ", posterByteArray.toString());
+
+                            db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+
+                            mFloatingActionButton.setImageResource(R.drawable.starempty);
+
+                            Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
-                    catch (Exception e){
-                        e.printStackTrace();
-                    }
-                }
-            });
+                });
+            }
         }
 
         public void populateDetailViewOffline(){

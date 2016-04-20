@@ -96,4 +96,6 @@
     <string name="movie_frag_toolbar_title">Popular Movies</string>
     <string name="detail_frag_toolbar_title">Movie Details</string>
 
+    <string name="favorites_remove_toast">Removed from favorites</string>
+
 </resources>
