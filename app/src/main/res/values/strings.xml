@@ -90,12 +90,19 @@
         <item>@string/pref_favorites_label</item>
     </string-array>
 
-    <string name="api_key">a0a454fc960bf4f69fa0adf5e13161cf</string>
+    <!-- Enter API key from themoviedb.org here to build the project-->
+    <string name="api_key">Replace Me with Your Key!</string>
     <string name="title_activity_favorites">FavoritesActivity</string>
 
     <string name="movie_frag_toolbar_title">Popular Movies</string>
     <string name="detail_frag_toolbar_title">Movie Details</string>
 
     <string name="favorites_remove_toast">Removed from favorites</string>
+
+    <string name="favorites_empty_message">Oops, You haven\'t chosen any favorite movies yet. Choose popular or rated
+    from the settings to see our great list of movies. </string>
+
+    <string name="no_network_message">Network connection is currently unavailable. This app requires
+    a network connection to get movies from the server. </string>
 
 </resources>
