@@ -1,4 +1,4 @@
-# PopularMovies
+# Movie Tracker
 
 Popular Movies is an app that displays the 20 most popular or highest rated movies to the user. 
 Users can click on a desired movie to view more about it in detail, as well as save it to their favorites. 
