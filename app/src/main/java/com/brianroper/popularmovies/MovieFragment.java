@@ -18,16 +18,20 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Base64;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
@@ -65,6 +69,7 @@ public class MovieFragment extends Fragment{
     int count = 0;
     private GridView mGridView;
     private String mKey;
+    private TextView mEmptyView;
 
     public MovieFragment() {
         // Required empty public constructor
@@ -267,6 +272,8 @@ public class MovieFragment extends Fragment{
             postersArray = postersFromFavoritesArray.toArray(postersArray);
 
             BitmapGridViewAdapter adapter = new BitmapGridViewAdapter(getActivity(), getId(), postersArray);
+            View emptyView = getActivity().findViewById(R.id.empty_textview);
+            mGridView.setEmptyView(emptyView);
             mGridView.setAdapter(adapter);
             final Bitmap[] finalPostersArray = postersArray;
 
@@ -309,6 +316,7 @@ public class MovieFragment extends Fragment{
         View v = inflater.inflate(R.layout.movie_gridview, container, false);
         mGridView = (GridView) v.findViewById(R.id.gridview);
         mKey = getString(R.string.api_key);
+        mEmptyView = (TextView) v.findViewById(R.id.empty_textview);
 
         ButterKnife.bind(getActivity());
 
@@ -393,14 +401,15 @@ public class MovieFragment extends Fragment{
             else{
                 imageView = (ImageView)convertView;
             }
-            GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams();
+            GridView.LayoutParams layoutParams = new GridView.LayoutParams(820, 820);
             imageView.setLayoutParams(layoutParams);
 
-            imageView.setAdjustViewBounds(false);
+            /*imageView.setAdjustViewBounds(false);
             imageView.requestLayout();
 
             imageView.getLayoutParams().height = 1085;
-            imageView.getLayoutParams().width = 1085;
+            imageView.getLayoutParams().width = 1085;*/
+
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imageView.setImageBitmap(images[position]);
 
