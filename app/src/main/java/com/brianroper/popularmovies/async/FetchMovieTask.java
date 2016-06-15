@@ -1,11 +1,8 @@
-package com.brianroper.popularmovies;
+package com.brianroper.popularmovies.async;
 
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.renderscript.ScriptGroup;
 import android.util.Log;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,12 +11,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 
-/**
- * Created by brianroper on 3/9/16.
- */
-public class FetchDetailsTask extends AsyncTask<String, Void, String> {
+public class FetchMovieTask extends AsyncTask<String, Void, String> {
 
     @Override
     protected String doInBackground(String... urls) {
@@ -29,8 +22,9 @@ public class FetchDetailsTask extends AsyncTask<String, Void, String> {
         BufferedReader bufferedReader = null;
 
         try {
+            //"https://api.themoviedb.org/3/movie/550?api_key=a0a454fc960bf4f69fa0adf5e13161cf"
 
-            URL url = new URL(urls[0]);
+            URL url = new URL(urls[0]);//themoviedb.org/movie
 
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.connect();
@@ -44,12 +38,12 @@ public class FetchDetailsTask extends AsyncTask<String, Void, String> {
             StringBuffer stringBuffer = new StringBuffer();
 
             String line;
-            while ((line = bufferedReader.readLine()) != null) {
+            while((line = bufferedReader.readLine())!= null){
 
                 stringBuffer.append(line + "/n");
             }
 
-            while (stringBuffer.length() == 0) {
+            while(stringBuffer.length() == 0){
 
                 //empty string no reason to parse
                 Log.i("StringBuffer", "Empty");
@@ -57,11 +51,10 @@ public class FetchDetailsTask extends AsyncTask<String, Void, String> {
             }
 
             result = stringBuffer.toString();
-        }
-        catch(MalformedURLException e){
+
+        } catch (MalformedURLException e) {
             e.printStackTrace();
-        }
-        catch (IOException e ){
+        } catch (IOException e) {
             e.printStackTrace();
         }
         finally {
@@ -90,7 +83,7 @@ public class FetchDetailsTask extends AsyncTask<String, Void, String> {
     }
 
     @Override
-    public void onPostExecute(String url){
+    public void onPostExecute(String s){
 
     }
 }

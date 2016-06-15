@@ -1,4 +1,4 @@
-package com.brianroper.popularmovies;
+package com.brianroper.popularmovies.ui;
 
 import android.content.res.Configuration;
 import android.os.Bundle;

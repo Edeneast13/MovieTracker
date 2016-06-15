@@ -1,4 +1,4 @@
-package com.brianroper.popularmovies;
+package com.brianroper.popularmovies.ui;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -25,6 +25,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.brianroper.popularmovies.R;
+import com.brianroper.popularmovies.Review;
+import com.brianroper.popularmovies.async.FetchDetailsTask;
+import com.brianroper.popularmovies.database.DBHandler;
+import com.brianroper.popularmovies.util.DbBitmapUtil;
+import com.brianroper.popularmovies.util.NetworkUtil;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -46,7 +53,7 @@ public class DetailActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .addToBackStack("settings")
+                    //.addToBackStack("settings")
                     .add(R.id.movie_detail_container, new DetailsFragment())
                     .commit();
         }
@@ -56,7 +63,9 @@ public class DetailActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
     }
-    
+
+
+
     public static class DetailsFragment extends Fragment{
 
         //Data

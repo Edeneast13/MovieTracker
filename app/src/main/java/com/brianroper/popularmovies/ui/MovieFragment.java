@@ -1,54 +1,41 @@
-package com.brianroper.popularmovies;
+package com.brianroper.popularmovies.ui;
 
 import android.app.ActivityOptions;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQuery;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.util.Base64;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.brianroper.popularmovies.Movie;
+import com.brianroper.popularmovies.R;
+import com.brianroper.popularmovies.async.FetchMovieTask;
+import com.brianroper.popularmovies.database.DBHandler;
+import com.brianroper.popularmovies.util.DbBitmapUtil;
+import com.brianroper.popularmovies.util.NetworkUtil;
 import com.squareup.picasso.Picasso;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
-import java.util.prefs.PreferenceChangeEvent;
-import java.util.prefs.PreferenceChangeListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import butterknife.Bind;
-import butterknife.BindString;
-import butterknife.ButterKnife;
 
 public class MovieFragment extends Fragment{
 

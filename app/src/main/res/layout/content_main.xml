@@ -10,10 +10,10 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.brianroper.popularmovies.MovieFragment"
+    tools:context=".ui.MovieFragment"
     tools:showIn="@layout/activity_main"
     android:id="@+id/movie_fragment"
-    android:name="com.brianroper.popularmovies.MovieFragment"
+    android:name="com.brianroper.popularmovies.ui.MovieFragment"
     tools:layout="@android:layout/list_content">
 
 </fragment>

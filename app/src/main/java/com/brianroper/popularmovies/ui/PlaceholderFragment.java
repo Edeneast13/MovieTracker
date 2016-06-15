@@ -1,4 +1,4 @@
-package com.brianroper.popularmovies;
+package com.brianroper.popularmovies.ui;
 
 
 import android.os.Bundle;
@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toolbar;
+
+import com.brianroper.popularmovies.R;
 
 public class PlaceholderFragment extends Fragment {
 

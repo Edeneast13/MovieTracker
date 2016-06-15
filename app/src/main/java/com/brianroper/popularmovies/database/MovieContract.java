@@ -1,4 +1,4 @@
-package com.brianroper.popularmovies;
+package com.brianroper.popularmovies.database;
 
 import android.provider.BaseColumns;
 

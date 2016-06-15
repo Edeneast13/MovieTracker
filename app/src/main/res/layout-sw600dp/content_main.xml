@@ -12,7 +12,7 @@
         android:layout_height="match_parent"
         android:layout_weight="2.5"
         android:id="@+id/movie_fragment"
-        android:name="com.brianroper.popularmovies.MovieFragment"
+        android:name="com.brianroper.popularmovies.ui.MovieFragment"
         tools:layout="@android:layout/list_content"/>
 
     <FrameLayout

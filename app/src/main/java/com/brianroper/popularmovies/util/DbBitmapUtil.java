@@ -1,4 +1,4 @@
-package com.brianroper.popularmovies;
+package com.brianroper.popularmovies.util;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;

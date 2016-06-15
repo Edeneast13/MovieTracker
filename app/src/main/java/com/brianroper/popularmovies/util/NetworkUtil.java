@@ -1,4 +1,4 @@
-package com.brianroper.popularmovies;
+package com.brianroper.popularmovies.util;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
