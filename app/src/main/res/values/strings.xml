@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PopularMovies</string>
+    <string name="app_name">MovieTracker</string>
     <string name="action_settings">Settings</string>
 
     <!-- TODO: Remove or change this placeholder text -->
@@ -104,5 +104,7 @@
 
     <string name="no_network_message">Network connection is currently unavailable. This app requires
     a network connection to get movies from the server. </string>
+
+    <string name="no_favorites">You currently have no movies saved to your favorites. Check out our awesome collection to change that!</string>
 
 </resources>

@@ -1,5 +1,6 @@
 package com.brianroper.popularmovies;
 
+import android.app.ActivityOptions;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +13,7 @@ import android.database.sqlite.SQLiteQuery;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
@@ -70,6 +72,7 @@ public class MovieFragment extends Fragment{
     private GridView mGridView;
     private String mKey;
     private TextView mEmptyView;
+    private Bundle mBundle;
 
     public MovieFragment() {
         // Required empty public constructor
@@ -262,11 +265,6 @@ public class MovieFragment extends Fragment{
                 postersFromFavoritesArray.add(posterBitmap);
             }
             c.close();
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-        finally{
 
             Bitmap[] postersArray = new Bitmap[postersFromFavoritesArray.size()];
             postersArray = postersFromFavoritesArray.toArray(postersArray);
@@ -277,35 +275,60 @@ public class MovieFragment extends Fragment{
             mGridView.setAdapter(adapter);
             final Bitmap[] finalPostersArray = postersArray;
 
-            Bitmap bitmap = finalPostersArray[0];
-            byte[] bytes = DbBitmapUtil.convertBitmapToByteArray(bitmap);
+                Bitmap bitmap = finalPostersArray[0];
+                byte[] bytes = DbBitmapUtil.convertBitmapToByteArray(bitmap);
 
-            String posterBytes = Base64.encodeToString(bytes, Base64.DEFAULT);
-            String t = titlesFromFavoritesArray.get(0);
+                String posterBytes = Base64.encodeToString(bytes, Base64.DEFAULT);
+                String t = titlesFromFavoritesArray.get(0);
 
-            PreferenceManager.getDefaultSharedPreferences(getContext())
+                PreferenceManager.getDefaultSharedPreferences(getContext())
+                        .edit()
+                        .putString("POSTER", posterBytes)
+                        .putString("TITLE", t)
+                        .commit();
+
+                mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                        final String finalTitle = titlesFromFavoritesArray.get(position);
+
+                        Intent i = new Intent(getActivity(), DetailActivity.class);
+                        i.putExtra("STATUS", "offline");
+
+                        Bitmap bitmap = finalPostersArray[position];
+                        byte[] bytes = DbBitmapUtil.convertBitmapToByteArray(bitmap);
+
+                        i.putExtra("POSTER", bytes);
+                        i.putExtra("TITLE", finalTitle);
+                        startActivity(i);
+                    }
+                });
+        }
+        catch (ArrayIndexOutOfBoundsException e){
+            e.printStackTrace();
+
+            for (int i = 0; i < 2; i++) {
+
+                Toast.makeText(getActivity(), getString(R.string.no_favorites),
+                        Toast.LENGTH_LONG).show();
+            }
+
+            SharedPreferences sharedPreferences = PreferenceManager
+                    .getDefaultSharedPreferences(getActivity());
+
+            sharedPreferences
                     .edit()
-                    .putString("POSTER", posterBytes)
-                    .putString("TITLE", t)
+                    .putString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_popular))
                     .commit();
 
-            mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Intent favoritesFailedIntent = new Intent(getActivity(), MainActivity.class);
+            startActivity(favoritesFailedIntent);
 
-                    final String finalTitle = titlesFromFavoritesArray.get(position);
 
-                    Intent i = new Intent(getActivity(), DetailActivity.class);
-                    i.putExtra("STATUS", "offline");
-
-                    Bitmap bitmap = finalPostersArray[position];
-                    byte[] bytes = DbBitmapUtil.convertBitmapToByteArray(bitmap);
-
-                    i.putExtra("POSTER", bytes);
-                    i.putExtra("TITLE", finalTitle);
-                    startActivity(i);
-                }
-            });
+        }
+        catch (Exception e){
+            e.printStackTrace();
         }
     }
 
@@ -318,7 +341,11 @@ public class MovieFragment extends Fragment{
         mKey = getString(R.string.api_key);
         mEmptyView = (TextView) v.findViewById(R.id.empty_textview);
 
-        ButterKnife.bind(getActivity());
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+
+            mBundle = ActivityOptions.makeSceneTransitionAnimation(getActivity())
+                    .toBundle();
+        }
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sortPref = sharedPreferences.getString(getString(R.string.pref_sort_key),getString(R.string.pref_sort_popular));

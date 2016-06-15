@@ -3,12 +3,9 @@ package com.brianroper.popularmovies;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.CursorIndexOutOfBoundsException;
-import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQuery;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,13 +19,10 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.squareup.picasso.Picasso;
@@ -37,10 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
-
-import butterknife.Bind;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -61,6 +52,11 @@ public class DetailActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
+    
     public static class DetailsFragment extends Fragment{
 
         //Data
@@ -272,6 +268,7 @@ public class DetailActivity extends AppCompatActivity {
 
                         mFloatingActionButton.setImageResource(R.drawable.starfull);
                     }
+                    c.close();
                 }
                 catch (CursorIndexOutOfBoundsException e){
                     e.printStackTrace();
@@ -310,11 +307,12 @@ public class DetailActivity extends AppCompatActivity {
                         DBHandler dbHandler = new DBHandler(getContext());
 
                         SQLiteDatabase db;
+                        Cursor c = null;
 
                         try {
                             db = dbHandler.getReadableDatabase();
 
-                            Cursor c = db.rawQuery("SELECT * FROM movies WHERE title = \"" + mTitle + "\"", null);
+                            c = db.rawQuery("SELECT * FROM movies WHERE title = \"" + mTitle + "\"", null);
                             c.moveToFirst();
                             int titleIndex = c.getColumnIndex("title");
                             String title = c.getString(titleIndex);
@@ -326,6 +324,8 @@ public class DetailActivity extends AppCompatActivity {
                                 db = dbHandler.getWritableDatabase();
 
                                 db.delete("movies", "title == " + "\"" + mTitle + "\"", null);
+
+                                c.close();
 
                                 Toast.makeText(getActivity(), getString(R.string.favorites_remove_toast),
                                         Toast.LENGTH_LONG).show();
@@ -349,6 +349,9 @@ public class DetailActivity extends AppCompatActivity {
                                 Log.i("POSTER BYTE ARRAY: ", posterByteArray.toString());
 
                                 db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+
+                                c.close();
+
                                 Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
                             }
                         } catch (CursorIndexOutOfBoundsException e) {
@@ -370,6 +373,8 @@ public class DetailActivity extends AppCompatActivity {
                             db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
 
                             mFloatingActionButton.setImageResource(R.drawable.starempty);
+
+                            c.close();
 
                             Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
