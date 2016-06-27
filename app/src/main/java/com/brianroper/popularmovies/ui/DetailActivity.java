@@ -278,6 +278,8 @@ public class DetailActivity extends AppCompatActivity {
                         mFloatingActionButton.setImageResource(R.drawable.starfull);
                     }
                     c.close();
+                    db.close();
+                    dbHandler.close();
                 }
                 catch (CursorIndexOutOfBoundsException e){
                     e.printStackTrace();
@@ -335,6 +337,8 @@ public class DetailActivity extends AppCompatActivity {
                                 db.delete("movies", "title == " + "\"" + mTitle + "\"", null);
 
                                 c.close();
+                                db.close();
+                                dbHandler.close();
 
                                 Toast.makeText(getActivity(), getString(R.string.favorites_remove_toast),
                                         Toast.LENGTH_LONG).show();
@@ -360,6 +364,8 @@ public class DetailActivity extends AppCompatActivity {
                                 db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
 
                                 c.close();
+                                db.close();
+                                dbHandler.close();
 
                                 Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
                             }
@@ -384,6 +390,8 @@ public class DetailActivity extends AppCompatActivity {
                             mFloatingActionButton.setImageResource(R.drawable.starempty);
 
                             c.close();
+                            db.close();
+                            dbHandler.close();
 
                             Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
@@ -422,6 +430,8 @@ public class DetailActivity extends AppCompatActivity {
                 mReview = c.getString(reviewIndex);
 
                 c.close();
+                db.close();
+                dbHandler.close();
             }
 
             Bitmap bitmap = DbBitmapUtil.convertByteArrayToBitmap(mBitmapFromFavorites);

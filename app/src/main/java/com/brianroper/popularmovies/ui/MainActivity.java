@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         SharedPreferences screenState = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        screenState.edit().putBoolean("State", mTwoPane).commit();
+        screenState.edit().putBoolean("State", mTwoPane).apply();
     }
 
     /*Checks to see if the device has an active network connection */
@@ -166,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
 
                     sharedPreferences.edit()
                             .putString(sortPref, getString(R.string.pref_sort_popular))
-                            .commit();
+                            .apply();
 
                     return MovieFragment.newInstance();
                 }

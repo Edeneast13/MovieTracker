@@ -179,7 +179,9 @@ public class MovieFragment extends Fragment{
                         String movie ="";
                         movie = movieIdArray.get(position);
 
-                        SharedPreferences screenState = PreferenceManager.getDefaultSharedPreferences(getContext());
+                        SharedPreferences screenState = PreferenceManager
+                                .getDefaultSharedPreferences(getContext());
+
                         mTwoPane = screenState.getBoolean("State",true);
 
                         if(mTwoPane == false){
@@ -257,6 +259,8 @@ public class MovieFragment extends Fragment{
                 postersFromFavoritesArray.add(posterBitmap);
             }
             c.close();
+            db.close();
+            dbHandler.close();
 
             Bitmap[] postersArray = new Bitmap[postersFromFavoritesArray.size()];
             postersArray = postersFromFavoritesArray.toArray(postersArray);
@@ -277,7 +281,7 @@ public class MovieFragment extends Fragment{
                         .edit()
                         .putString("POSTER", posterBytes)
                         .putString("TITLE", t)
-                        .commit();
+                        .apply();
 
                 mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
@@ -312,7 +316,7 @@ public class MovieFragment extends Fragment{
             sharedPreferences
                     .edit()
                     .putString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_popular))
-                    .commit();
+                    .apply();
 
             Intent favoritesFailedIntent = new Intent(getActivity(), MainActivity.class);
             startActivity(favoritesFailedIntent);
