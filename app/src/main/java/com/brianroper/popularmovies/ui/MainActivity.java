@@ -15,6 +15,7 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -132,7 +133,9 @@ public class MainActivity extends AppCompatActivity {
 
                     sharedPreferences.edit()
                             .putString(sortPref, getString(R.string.pref_sort_popular))
-                            .commit();
+                            .apply();
+
+                    Log.i("SortChoice", getString(R.string.pref_sort_popular));
 
                     return MovieFragment.newInstance();
                 }
@@ -141,7 +144,9 @@ public class MainActivity extends AppCompatActivity {
 
                     sharedPreferences.edit()
                             .putString(sortPref, getString(R.string.pref_sort_rating))
-                            .commit();
+                            .apply();
+
+                    Log.i("SortChoice", getString(R.string.pref_sort_rating));
 
                     return MovieFragment.newInstance();
                 }
@@ -150,7 +155,9 @@ public class MainActivity extends AppCompatActivity {
 
                     sharedPreferences.edit()
                             .putString(sortPref, getString(R.string.pref_sort_favorites))
-                            .commit();
+                            .apply();
+
+                    Log.i("SortChoice", getString(R.string.pref_sort_favorites));
 
                     return MovieFragment.newInstance();
                 }
