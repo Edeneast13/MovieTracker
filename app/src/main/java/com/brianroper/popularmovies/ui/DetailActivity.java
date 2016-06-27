@@ -311,98 +311,13 @@ public class DetailActivity extends AppCompatActivity {
                     }
                 });
 
-                mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-
-                        DBHandler dbHandler = new DBHandler(getContext());
-
-                        SQLiteDatabase db;
-                        Cursor c = null;
-
-                        try {
-                            db = dbHandler.getReadableDatabase();
-
-                            c = db.rawQuery("SELECT * FROM movies WHERE title = \"" + mTitle + "\"", null);
-                            c.moveToFirst();
-                            int titleIndex = c.getColumnIndex("title");
-                            String title = c.getString(titleIndex);
-
-                            if (title.equals(mTitle)) {
-
-                                mFloatingActionButton.setImageResource(R.drawable.starfull);
-
-                                db = dbHandler.getWritableDatabase();
-
-                                db.delete("movies", "title == " + "\"" + mTitle + "\"", null);
-
-                                c.close();
-                                db.close();
-                                dbHandler.close();
-
-                                Toast.makeText(getActivity(), getString(R.string.favorites_remove_toast),
-                                        Toast.LENGTH_LONG).show();
-                            } else if (!(title.equals(mTitle))) {
-
-                                mFloatingActionButton.setImageResource(R.drawable.starempty);
-
-                                db = dbHandler.getWritableDatabase();
-
-                                ImageView mPosterRef = mPosterImage;
-                                Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
-                                byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
-
-                                ContentValues values = new ContentValues();
-                                values.put("title", mTitle);
-                                values.put("release", mReleaseDate);
-                                values.put("rating", mRating);
-                                values.put("overview", mOverview);
-                                values.put("review", mReview);
-                                values.put("poster", posterByteArray);
-                                Log.i("POSTER BYTE ARRAY: ", posterByteArray.toString());
-
-                                db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
-
-                                c.close();
-                                db.close();
-                                dbHandler.close();
-
-                                Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
-                            }
-                        } catch (CursorIndexOutOfBoundsException e) {
-                            db = dbHandler.getWritableDatabase();
-
-                            ImageView mPosterRef = mPosterImage;
-                            Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
-                            byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
-
-                            ContentValues values = new ContentValues();
-                            values.put("title", mTitle);
-                            values.put("release", mReleaseDate);
-                            values.put("rating", mRating);
-                            values.put("overview", mOverview);
-                            values.put("review", mReview);
-                            values.put("poster", posterByteArray);
-                            Log.i("POSTER BYTE ARRAY: ", posterByteArray.toString());
-
-                            db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
-
-                            mFloatingActionButton.setImageResource(R.drawable.starempty);
-
-                            c.close();
-                            db.close();
-                            dbHandler.close();
-
-                            Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
+                setFabListener(mFloatingActionButton);
             }
         }
 
         public void populateDetailViewOffline(){
+
+            byte[] posterBytes = null;
 
             DBHandler dbHandler = new DBHandler(getContext());
 
@@ -429,20 +344,20 @@ public class DetailActivity extends AppCompatActivity {
                 c.moveToFirst();
                 mReview = c.getString(reviewIndex);
 
+                int posterIndex = c.getColumnIndex("poster");
+                c.moveToFirst();
+                posterBytes = c.getBlob(posterIndex);
+
                 c.close();
                 db.close();
                 dbHandler.close();
             }
 
-            Bitmap bitmap = DbBitmapUtil.convertByteArrayToBitmap(mBitmapFromFavorites);
-            mPosterImage.setImageBitmap(bitmap);
+            Bitmap imageBitmap = DbBitmapUtil.convertByteArrayToBitmap(posterBytes);
 
-            CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams)
-                    mFloatingActionButton.getLayoutParams();
-
-            layoutParams.setAnchorId(View.NO_ID);
-            mFloatingActionButton.setLayoutParams(layoutParams);
-            mFloatingActionButton.setVisibility(View.GONE);
+            mPosterImage.setImageBitmap(imageBitmap);
+            mFloatingActionButton.setImageResource(R.drawable.starempty);
+            setFabListener(mFloatingActionButton);
 
             updateDetailViews();
         }
@@ -540,6 +455,98 @@ public class DetailActivity extends AppCompatActivity {
             setHasOptionsMenu(true);
             // Inflate the layout for this fragment
             return v;
+        }
+
+        private void setFabListener(final FloatingActionButton floatingActionButton) {
+
+            floatingActionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    DBHandler dbHandler = new DBHandler(getContext());
+
+                    SQLiteDatabase db;
+                    Cursor c = null;
+
+                    try {
+                        db = dbHandler.getReadableDatabase();
+
+                        c = db.rawQuery("SELECT * FROM movies WHERE title = \"" + mTitle + "\"", null);
+                        c.moveToFirst();
+                        int titleIndex = c.getColumnIndex("title");
+                        String title = c.getString(titleIndex);
+
+                        if (title.equals(mTitle)) {
+
+                            floatingActionButton.setImageResource(R.drawable.starfull);
+
+                            db = dbHandler.getWritableDatabase();
+
+                            db.delete("movies", "title == " + "\"" + mTitle + "\"", null);
+
+                            c.close();
+                            db.close();
+                            dbHandler.close();
+
+                            Toast.makeText(getActivity(), getString(R.string.favorites_remove_toast),
+                                    Toast.LENGTH_LONG).show();
+                        } else if (!(title.equals(mTitle))) {
+
+                            floatingActionButton.setImageResource(R.drawable.starempty);
+
+                            db = dbHandler.getWritableDatabase();
+
+                            ImageView mPosterRef = mPosterImage;
+                            Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
+                            byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
+
+                            ContentValues values = new ContentValues();
+                            values.put("title", mTitle);
+                            values.put("release", mReleaseDate);
+                            values.put("rating", mRating);
+                            values.put("overview", mOverview);
+                            values.put("review", mReview);
+                            values.put("poster", posterByteArray);
+                            Log.i("POSTER BYTE ARRAY: ", posterByteArray.toString());
+
+                            db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+
+                            c.close();
+                            db.close();
+                            dbHandler.close();
+
+                            Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
+                        }
+                    } catch (CursorIndexOutOfBoundsException e) {
+                        db = dbHandler.getWritableDatabase();
+
+                        ImageView mPosterRef = mPosterImage;
+                        Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
+                        byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
+
+                        ContentValues values = new ContentValues();
+                        values.put("title", mTitle);
+                        values.put("release", mReleaseDate);
+                        values.put("rating", mRating);
+                        values.put("overview", mOverview);
+                        values.put("review", mReview);
+                        values.put("poster", posterByteArray);
+                        Log.i("POSTER BYTE ARRAY: ", posterByteArray.toString());
+
+                        db.insertWithOnConflict("movies", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+
+                        floatingActionButton.setImageResource(R.drawable.starempty);
+
+                        c.close();
+                        db.close();
+                        dbHandler.close();
+
+                        Toast.makeText(getActivity(), "Saved to Favorites", Toast.LENGTH_LONG).show();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
     }
 
