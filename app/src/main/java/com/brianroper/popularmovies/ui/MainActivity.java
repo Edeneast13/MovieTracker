@@ -7,6 +7,12 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -17,6 +23,9 @@ import com.brianroper.popularmovies.R;
 public class MainActivity extends AppCompatActivity {
 
     private boolean mTwoPane;
+    private PagerAdapter mPagerAdapter;
+    private TabLayout mTabLayout;
+    private ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +34,12 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(getString(R.string.movie_frag_toolbar_title));
+
+        mViewPager = (ViewPager)findViewById(R.id.view_pager);
+        mPagerAdapter = new MoviePagerAdapter(getSupportFragmentManager());
+        mViewPager.setAdapter(mPagerAdapter);
+
+        setTabLayout(mTabLayout, R.id.tab_layout, mViewPager, mPagerAdapter);
 
         activeNetworkCheck();
 
@@ -37,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
             if(savedInstanceState == null){
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .replace(R.id.movie_detail_container, placeholderFragment)
+                        .add(R.id.movie_detail_container, placeholderFragment)
                         .commit();
             }
         }
@@ -63,7 +78,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        return super.onCreateOptionsMenu(menu);
+
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
     }
 
     @Override
@@ -82,6 +99,100 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    //populate tab layout using adapter
+    public void setTabLayout(TabLayout tabLayout, int id, ViewPager viewPager,
+                             PagerAdapter pagerAdapter){
+
+        tabLayout = (TabLayout)findViewById(id);
+        tabLayout.setTabsFromPagerAdapter(pagerAdapter);
+        tabLayout.setupWithViewPager(viewPager);
+    }
+
+    /* Pager Adapter */
+    private class MoviePagerAdapter extends FragmentStatePagerAdapter{
+
+
+        public MoviePagerAdapter(FragmentManager fm){
+
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+
+            String sortPref = getString(R.string.pref_sort_key);
+            SharedPreferences sharedPreferences = PreferenceManager
+                    .getDefaultSharedPreferences(getApplicationContext());
+
+            switch(position){
+
+                case 0: {
+
+                    sharedPreferences.edit()
+                            .putString(sortPref, getString(R.string.pref_sort_popular))
+                            .commit();
+
+                    return MovieFragment.newInstance();
+                }
+
+                case 1: {
+
+                    sharedPreferences.edit()
+                            .putString(sortPref, getString(R.string.pref_sort_rating))
+                            .commit();
+
+                    return MovieFragment.newInstance();
+                }
+
+                case 2: {
+
+                    sharedPreferences.edit()
+                            .putString(sortPref, getString(R.string.pref_sort_favorites))
+                            .commit();
+
+                    return MovieFragment.newInstance();
+                }
+
+                default: {
+
+                    sharedPreferences.edit()
+                            .putString(sortPref, getString(R.string.pref_sort_popular))
+                            .commit();
+
+                    return MovieFragment.newInstance();
+                }
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return 3;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+
+            switch(position){
+
+                case 0: {
+
+                    return "popular";
+                }
+
+                case 1: {
+
+                    return "top rated";
+                }
+
+                case 2: {
+
+                    return "favorites";
+                }
+            }
+            return "Tab " + position;
+        }
     }
 }
 

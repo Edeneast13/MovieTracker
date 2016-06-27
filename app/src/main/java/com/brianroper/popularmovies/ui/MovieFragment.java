@@ -65,6 +65,11 @@ public class MovieFragment extends Fragment{
         // Required empty public constructor
     }
 
+    public static MovieFragment newInstance(){
+
+        return new MovieFragment();
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
