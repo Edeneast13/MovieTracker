@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,8 @@ import com.brianroper.popularmovies.util.NetworkUtil;
 import com.squareup.picasso.Picasso;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
@@ -43,6 +46,7 @@ public class MovieFragment extends Fragment{
     private ArrayList<String> posterUrlArray = new ArrayList<String>();
     private ArrayList<Bitmap> postersFromFavoritesArray = new ArrayList<Bitmap>();
     private ArrayList<String> titlesFromFavoritesArray = new ArrayList<String>();
+    private String[] posterArray;
     private String movieId = "";
     private String poster = "";
     private Boolean mTwoPane;
@@ -132,35 +136,24 @@ public class MovieFragment extends Fragment{
             }
             if (htmlData != null) {
 
-                //splits the webpage source code to ignore unnecessary code
-                String[] splitHtmlData = htmlData.split("<div class=\"pagination\">");
+                //splits the htmldata on a different thread
+                SplitPageRunnable runnable = new SplitPageRunnable(
+                        htmlData,
+                        movieId,
+                        poster,
+                        count,
+                        movieIdArray,
+                        posterUrlArray,
+                        posterArray);
 
-                //picks out movie id's from web page source code
-                Pattern idPattern = Pattern.compile("id=\"movie_(.*?)\"");
-                Matcher idMatcher = idPattern.matcher(splitHtmlData[0]);
+                runnable.run();
 
-                while (idMatcher.find()) {
+                posterArray = new String[posterUrlArray.size()];
+                posterArray = posterUrlArray.toArray(posterArray);
 
-                    movieIdArray.add(idMatcher.group(1));
+                for (int i = 0; i < posterUrlArray.size(); i++) {
+                    Log.i("Poster Array: ", posterArray[i]);
                 }
-
-                for (int i = 0; i < movieIdArray.size(); i++) {
-                    count++;
-                    movieIdArray.remove(count);
-                }
-
-                //creates new Movie objects that store movie id and poster url
-                for (int i = 0; i < movieIdArray.size(); i++) {
-                    Movie movie = new Movie();
-                    movieId = movieIdArray.get(i);
-                    movie.setId(movieId);
-                    poster = getPosterPathFromJson(movie.getId());
-                    movie.setPosterUrl(poster);
-                    posterUrlArray.add(movie.getPosterUrl());
-                }
-
-                String[] postersArray = new String[posterUrlArray.size()];
-                postersArray = posterUrlArray.toArray(postersArray);
 
                 String movie = movieIdArray.get(0);
 
@@ -170,7 +163,7 @@ public class MovieFragment extends Fragment{
                 MovieFragment movieFragment = new MovieFragment();
                 movieFragment.setArguments(args);
 
-                GridViewAdapter adapter = new GridViewAdapter(getActivity(), getId(), postersArray);
+                GridViewAdapter adapter = new GridViewAdapter(getActivity(), getId(), posterArray);
                 mGridView.setAdapter(adapter);
                 mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
@@ -437,6 +430,63 @@ public class MovieFragment extends Fragment{
             imageView.setImageBitmap(images[position]);
 
             return imageView;
+        }
+}
+
+    //class for splitting the downloaded data on another thread
+    public class SplitPageRunnable implements Runnable{
+
+        private String data;
+        private String id;
+        private String poster;
+        private int count;
+        private ArrayList<String> idArray;
+        private ArrayList<String> posterUrlArray;
+        private String[] posterArray;
+
+        public SplitPageRunnable(String data, String id,
+                                 String poster, int count,
+                                 ArrayList<String> idArray,
+                                 ArrayList<String> posterUrlArray,
+                                 String[] posterArray) {
+            this.data = data;
+            this.id = id;
+            this.poster = poster;
+            this.count = count;
+            this.idArray = idArray;
+            this.posterUrlArray = posterUrlArray;
+            this.posterArray = posterArray;
+        }
+
+        @Override
+        public void run() {
+
+            String [] splitData = data.split("<div class=\"pagination\">");
+
+            Pattern idPattern = Pattern.compile("id=\"movie_(.*?)\"");
+            Matcher idMatcher = idPattern.matcher(splitData[0]);
+
+            while(idMatcher.find()){
+
+                idArray.add(idMatcher.group(1));
+            }
+
+            for(int i = 0; i < idArray.size(); i++){
+                count++;
+                idArray.remove(count);
+            }
+
+            for(int i = 0; i < idArray.size(); i++){
+                Movie movie = new Movie();
+                movieId = idArray.get(i);
+                movie.setId(movieId);
+                poster = getPosterPathFromJson(movie.getId());
+                movie.setPosterUrl(poster);
+                posterUrlArray.add(movie.getPosterUrl());
+            }
+
+            posterArray = new String[posterUrlArray.size()];
+            posterArray = posterUrlArray.toArray(posterArray);
         }
     }
 }
