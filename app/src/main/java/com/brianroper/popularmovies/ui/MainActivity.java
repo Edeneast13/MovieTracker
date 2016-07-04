@@ -1,7 +1,6 @@
 package com.brianroper.popularmovies.ui;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -15,9 +14,6 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import com.brianroper.popularmovies.R;
 
@@ -61,9 +57,10 @@ public class MainActivity extends AppCompatActivity {
             mTwoPane =false;
         }
 
-       SharedPreferences screenState = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        screenState.edit().putBoolean("State", mTwoPane)
-                .putString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_popular))
+       SharedPreferences screenState = PreferenceManager
+               .getDefaultSharedPreferences(getApplicationContext());
+        screenState.edit()
+                .putBoolean("State", mTwoPane)
                 .apply();
     }
 
@@ -79,31 +76,6 @@ public class MainActivity extends AppCompatActivity {
         return isConnected;
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        //getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-
-            Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
-            startActivity(i);
-            return false;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     //populate tab layout using adapter
     public void setTabLayout(TabLayout tabLayout, int id, ViewPager viewPager,
                              PagerAdapter pagerAdapter){
@@ -116,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
     /* Pager Adapter */
     private class MoviePagerAdapter extends FragmentStatePagerAdapter{
 
-
         public MoviePagerAdapter(FragmentManager fm){
 
             super(fm);
@@ -125,59 +96,26 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public Fragment getItem(int position) {
 
-            String sortPref = getString(R.string.pref_sort_key);
-            SharedPreferences sharedPreferences = PreferenceManager
-                    .getDefaultSharedPreferences(getApplicationContext());
-
-            sharedPreferences.edit()
-                    .putString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_popular))
-                    .apply();
-
             switch(position){
 
                 case 0: {
 
-                    sharedPreferences.edit()
-                            .putString(sortPref, getString(R.string.pref_sort_popular))
-                            .apply();
-
-                    Log.i("SortChoice", getString(R.string.pref_sort_popular));
-                    Log.i("Position:", String.valueOf(position));
-
-                    return MovieFragment.newInstance();
+                    return MovieFragment.newInstance(getString(R.string.pref_sort_popular), getApplicationContext());
                 }
 
                 case 1: {
 
-                    sharedPreferences.edit()
-                            .putString(sortPref, getString(R.string.pref_sort_rating))
-                            .apply();
-
-                    Log.i("SortChoice", getString(R.string.pref_sort_rating));
-                    Log.i("Position:", String.valueOf(position));
-
-                    return MovieFragment.newInstance();
+                    return MovieFragment.newInstance(getString(R.string.pref_sort_rating), getApplicationContext());
                 }
 
                 case 2: {
 
-                    sharedPreferences.edit()
-                            .putString(sortPref, getString(R.string.pref_sort_favorites))
-                            .apply();
-
-                    Log.i("SortChoice", getString(R.string.pref_sort_favorites));
-                    Log.i("Position:", String.valueOf(position));
-
-                    return MovieFragment.newInstance();
+                    return MovieFragment.newInstance(getString(R.string.pref_sort_favorites), getApplicationContext());
                 }
 
                 default: {
 
-                    sharedPreferences.edit()
-                            .putString(sortPref, getString(R.string.pref_sort_popular))
-                            .apply();
-
-                    return MovieFragment.newInstance();
+                    return MovieFragment.newInstance(getString(R.string.pref_sort_popular), getApplicationContext());
                 }
             }
         }

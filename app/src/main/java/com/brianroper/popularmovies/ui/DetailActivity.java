@@ -10,7 +10,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -18,8 +17,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -63,8 +60,6 @@ public class DetailActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
     }
-
-
 
     public static class DetailsFragment extends Fragment{
 
@@ -255,7 +250,10 @@ public class DetailActivity extends AppCompatActivity {
 
                 mReview = "Author: " + mAuthor + "\n" + mContent;
 
-                Picasso.with(getContext()).load(BASE_POSTER_URL + POSTER_SIZE_PARAM + mPosterPath).into(mPosterImage);
+                Picasso.with(getContext())
+                        .load(BASE_POSTER_URL + POSTER_SIZE_PARAM + mPosterPath)
+                        .into(mPosterImage);
+
                 updateDetailViews();
 
                 DBHandler dbHandler = new DBHandler(getContext());
@@ -286,7 +284,6 @@ public class DetailActivity extends AppCompatActivity {
 
                     mFloatingActionButton.setImageResource(R.drawable.starfull);
                 }
-
 
                 mTrailerTextView.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -432,7 +429,8 @@ public class DetailActivity extends AppCompatActivity {
 
                    if(mTitleFromFavorites == null){
 
-                       String title = PreferenceManager.getDefaultSharedPreferences(getContext())
+                       String title = PreferenceManager
+                               .getDefaultSharedPreferences(getContext())
                                .getString("TITLE", "");
 
                        mTitleFromFavorites = title;
@@ -548,30 +546,5 @@ public class DetailActivity extends AppCompatActivity {
                 }
             });
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-
-            Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
-            startActivity(i);
-            return false;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 }

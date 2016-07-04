@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,7 +33,6 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
@@ -69,7 +67,14 @@ public class MovieFragment extends Fragment{
         // Required empty public constructor
     }
 
-    public static MovieFragment newInstance(){
+    public static MovieFragment newInstance(String sortPref, Context context){
+
+        SharedPreferences sharedPreferences = PreferenceManager
+                .getDefaultSharedPreferences(context);
+
+        sharedPreferences.edit()
+                .putString(context.getString(R.string.pref_sort_key), sortPref)
+                .apply();
 
         return new MovieFragment();
     }
