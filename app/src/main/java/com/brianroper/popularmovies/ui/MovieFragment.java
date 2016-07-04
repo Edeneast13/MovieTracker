@@ -151,10 +151,6 @@ public class MovieFragment extends Fragment{
                 posterArray = new String[posterUrlArray.size()];
                 posterArray = posterUrlArray.toArray(posterArray);
 
-                for (int i = 0; i < posterUrlArray.size(); i++) {
-                    Log.i("Poster Array: ", posterArray[i]);
-                }
-
                 String movie = movieIdArray.get(0);
 
                 Bundle args = new Bundle();

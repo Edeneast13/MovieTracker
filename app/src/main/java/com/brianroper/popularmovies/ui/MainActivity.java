@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
             mTwoPane =false;
         }
 
-        SharedPreferences screenState = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+       SharedPreferences screenState = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         screenState.edit().putBoolean("State", mTwoPane)
                 .putString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_popular))
                 .apply();
@@ -129,6 +129,10 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences sharedPreferences = PreferenceManager
                     .getDefaultSharedPreferences(getApplicationContext());
 
+            sharedPreferences.edit()
+                    .putString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_popular))
+                    .apply();
+
             switch(position){
 
                 case 0: {
@@ -138,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
                             .apply();
 
                     Log.i("SortChoice", getString(R.string.pref_sort_popular));
+                    Log.i("Position:", String.valueOf(position));
 
                     return MovieFragment.newInstance();
                 }
@@ -149,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
                             .apply();
 
                     Log.i("SortChoice", getString(R.string.pref_sort_rating));
+                    Log.i("Position:", String.valueOf(position));
 
                     return MovieFragment.newInstance();
                 }
@@ -160,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
                             .apply();
 
                     Log.i("SortChoice", getString(R.string.pref_sort_favorites));
+                    Log.i("Position:", String.valueOf(position));
 
                     return MovieFragment.newInstance();
                 }
