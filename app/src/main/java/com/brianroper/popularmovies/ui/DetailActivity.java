@@ -111,9 +111,9 @@ public class DetailActivity extends AppCompatActivity {
         public void updateDetailViews(){
 
             mTitleTextView.setText(mTitle);
-            mReleaseDateTextView.setText("Release Date: " + mReleaseDate);
-            mRatingTextView.setText("Rating: " + mRating + "/10");
-            mOverviewTextView.setText("Overview: " + mOverview);
+            mReleaseDateTextView.setText(mReleaseDate + "  |");
+            mRatingTextView.setText(mRating + "/10");
+            mOverviewTextView.setText(mOverview);
             mTrailerTextView.setText("Play Trailer");
             mReviewTextView.setText(mReview);
         }
@@ -248,7 +248,7 @@ public class DetailActivity extends AppCompatActivity {
 
                 retrieveReviewJson(mReviewUrl);
 
-                mReview = "Author: " + mAuthor + "\n" + mContent;
+                mReview = mAuthor + "\n" + mContent;
 
                 Picasso.with(getContext())
                         .load(BASE_POSTER_URL + POSTER_SIZE_PARAM + mPosterPath)

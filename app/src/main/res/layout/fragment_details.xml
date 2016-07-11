@@ -12,27 +12,27 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:elevation="2dp"
         android:layout_gravity="left"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:paddingTop="50dp"
         android:orientation="vertical"
-        android:paddingBottom="40dp">
+        android:paddingBottom="40dp"
+        android:gravity="center_horizontal">
 
-        <ImageView
-            android:layout_width="188dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/poster_thumbnail"
-            android:layout_gravity="center_horizontal|top"
-            android:elevation="6dp"
-            android:layout_marginTop="15dp"/>
+            <ImageView
+                android:layout_width="188dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/poster_thumbnail"
+                android:layout_gravity="center|top"
+                android:elevation="6dp"
+                android:layout_marginTop="15dp"/>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text=""
             android:gravity="center"
             android:paddingTop="10dp"
             android:fontFamily="sans-serif-regular"
@@ -40,40 +40,53 @@
             android:id="@+id/movie_title"
             android:textStyle="bold"/>
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:text=""
-            android:gravity="center"
-            android:fontFamily="sans-serif-light"
-            android:id="@+id/release_date"/>
+            android:orientation="vertical"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:fontFamily="sans-serif-light"
+                    android:id="@+id/release_date"
+                    android:textSize="17sp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:textSize="17sp"
+                    android:fontFamily="sans-serif-light"
+                    android:id="@+id/rating"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text=""
-            android:padding="5dp"
-            android:textSize="17sp"
-            android:fontFamily="sans-serif-light"
-            android:id="@+id/rating"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=""
             android:gravity="center_vertical"
             android:fontFamily="sans-serif-regular"
             android:padding="5dp"
             android:textSize="15sp"
             android:id="@+id/plot_overview"
-            android:elevation="2dp"/>
+            android:elevation="2dp"
+            android:singleLine="false"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=""
-            android:gravity="center_vertical"
+            android:gravity="left"
             android:fontFamily="sans-serif-regular"
             android:padding="5dp"
             android:textSize="30sp"
@@ -83,7 +96,6 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text=""
             android:gravity="center_vertical"
             android:fontFamily="sans-serif-light"
             android:padding="5dp"

@@ -20,6 +20,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -295,6 +296,7 @@ public class MovieFragment extends Fragment{
                     }
                 });
         }
+        //is thrown when the user has no favorites stored
         catch (ArrayIndexOutOfBoundsException e){
             e.printStackTrace();
 
@@ -303,19 +305,6 @@ public class MovieFragment extends Fragment{
                 Toast.makeText(getActivity(), getString(R.string.no_favorites),
                         Toast.LENGTH_LONG).show();
             }
-
-            SharedPreferences sharedPreferences = PreferenceManager
-                    .getDefaultSharedPreferences(getActivity());
-
-            sharedPreferences
-                    .edit()
-                    .putString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_popular))
-                    .apply();
-
-            Intent favoritesFailedIntent = new Intent(getActivity(), MainActivity.class);
-            startActivity(favoritesFailedIntent);
-
-
         }
         catch (Exception e){
             e.printStackTrace();
@@ -418,7 +407,7 @@ public class MovieFragment extends Fragment{
             else{
                 imageView = (ImageView)convertView;
             }
-            GridView.LayoutParams layoutParams = new GridView.LayoutParams(820, 820);
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(820, 820);
             imageView.setLayoutParams(layoutParams);
 
             /*imageView.setAdjustViewBounds(false);

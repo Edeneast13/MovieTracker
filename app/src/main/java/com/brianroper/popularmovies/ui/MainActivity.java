@@ -14,8 +14,10 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 
 import com.brianroper.popularmovies.R;
+import com.brianroper.popularmovies.util.DbUtil;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private PagerAdapter mPagerAdapter;
     private TabLayout mTabLayout;
     private ViewPager mViewPager;
+    private SharedPreferences mSharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(getString(R.string.movie_frag_toolbar_title));
+
+        mSharedPreferences = PreferenceManager
+                .getDefaultSharedPreferences(getApplicationContext());
 
         mViewPager = (ViewPager)findViewById(R.id.view_pager);
         mPagerAdapter = new MoviePagerAdapter(getSupportFragmentManager());
@@ -100,29 +106,43 @@ public class MainActivity extends AppCompatActivity {
 
                 case 0: {
 
+                    Log.i("SortPref", getString(R.string.pref_sort_popular));
                     return MovieFragment.newInstance(getString(R.string.pref_sort_popular), getApplicationContext());
                 }
 
                 case 1: {
 
+                    Log.i("SortPref", getString(R.string.pref_sort_rating));
                     return MovieFragment.newInstance(getString(R.string.pref_sort_rating), getApplicationContext());
                 }
 
                 case 2: {
 
+                    Log.i("SortPref", getString(R.string.pref_sort_favorites));
                     return MovieFragment.newInstance(getString(R.string.pref_sort_favorites), getApplicationContext());
                 }
 
                 default: {
 
+                    Log.i("SortPref", "default");
                     return MovieFragment.newInstance(getString(R.string.pref_sort_popular), getApplicationContext());
                 }
             }
         }
 
+
+
         @Override
         public int getCount() {
-            return 3;
+
+            if(DbUtil.activeDb(getApplicationContext()) == true){
+
+                return 3;
+            }
+            else{
+
+                return 2;
+            }
         }
 
         @Override
