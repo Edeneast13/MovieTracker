@@ -1,5 +1,6 @@
 package com.brianroper.popularmovies.rest;
 
+import com.brianroper.popularmovies.model.Movie;
 import com.brianroper.popularmovies.model.MovieResponse;
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -14,7 +15,7 @@ public interface ApiInterface {
     Call<MovieResponse> getTopRated(@Query("api_key") String apiKey);
 
     @GET("movie/{id}")
-    Call<MovieResponse> getDetails(@Path("id") int id, @Query("api_key") String apiKey);
+    Call<Movie> getDetails(@Path("id") int id, @Query("api_key") String apiKey);
 
     @GET("movie/popular")
     Call<MovieResponse> getPopular(@Query("api_key") String apiKey);

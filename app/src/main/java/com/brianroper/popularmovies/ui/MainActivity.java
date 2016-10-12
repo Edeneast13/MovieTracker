@@ -129,6 +129,9 @@ public class MainActivity extends AppCompatActivity {
                 case 1:{
                     return new RatedFragment();
                 }
+                case 2:{
+                    return new FavoriteFragment();
+                }
             }
             return new PopularFragment();
         }

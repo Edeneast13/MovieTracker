@@ -1,20 +1,14 @@
 package com.brianroper.popularmovies.ui;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.CursorIndexOutOfBoundsException;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,19 +19,21 @@ import android.widget.Toast;
 
 import com.brianroper.popularmovies.model.Favorite;
 import com.brianroper.popularmovies.R;
-import com.brianroper.popularmovies.model.Review;
+import com.brianroper.popularmovies.model.Movie;
+import com.brianroper.popularmovies.rest.ApiClient;
+import com.brianroper.popularmovies.rest.ApiInterface;
 import com.brianroper.popularmovies.util.DbBitmapUtil;
-import com.brianroper.popularmovies.util.NetworkUtil;
 import com.squareup.picasso.Picasso;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.concurrent.ExecutionException;
-
+import io.realm.DynamicRealm;
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
+import io.realm.RealmMigration;
 import io.realm.RealmResults;
+import io.realm.RealmSchema;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -65,22 +61,11 @@ public class DetailActivity extends AppCompatActivity {
 
     public static class DetailsFragment extends Fragment {
 
-        //Data
-        private String mTitle = "";
-        private String mPosterPath;
-        private String mOverview = "";
-        private String mRating = "";
-        private String mReleaseDate;
-        private String mMovieId;
-        private String mTrailer = "";
-        private String mTrailerUrl = "";
-        private String mReviewUrl = "";
+        private int mMovieId;
+        private int mPosition;
         private String mReview = "";
-        private String mAuthor = "";
-        private String mContent = "";
-        private byte[] mBitmapFromFavorites;
-        private String mTitleFromFavorites = "";
-        private String mStatus = "";
+        private String mKey;
+
         //views
         private TextView mTitleTextView;
         private TextView mReleaseDateTextView;
@@ -92,11 +77,6 @@ public class DetailActivity extends AppCompatActivity {
         private FloatingActionButton mFloatingActionButton;
         private Context mContext;
         //urls
-        private String mKey;
-        final String API_KEY_PARAM = "api_key";
-        final String BASE_JSON_REQUEST = "api.themoviedb.org";
-        final String JSON_REQUEST_PARAM = "3";
-        final String MOVIE_JSON_REQUEST = "movie";
         final String REVIEW_JSON_REQUEST = "reviews";
         final String TRAILER_JSON_REQUEST = "videos";
         final String YOUTUBE_BASE_URL = "www.youtube.com";
@@ -107,7 +87,7 @@ public class DetailActivity extends AppCompatActivity {
 
         private Realm mRealm;
 
-        public void DetailsFragment() {}
+        public void DetailsFragment(){}
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -118,10 +98,13 @@ public class DetailActivity extends AppCompatActivity {
             initializeViews(root);
             initializeRealm();
 
-            mKey = getString(R.string.api_key);
+            returnApiKey();
+            returnIntentExtras();
+
+            apiRequestDetail(mMovieId);
 
             setHasOptionsMenu(true);
-            // Inflate the layout for this fragment
+
             return root;
         }
 
@@ -139,16 +122,29 @@ public class DetailActivity extends AppCompatActivity {
             mReviewTextView = (TextView) root.findViewById(R.id.review_textview);
         }
 
+        public void setFloatingActionButtonListener(final Movie movie){
+            mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    storeFavoriteInRealm(movie);
+                }
+            });
+        }
+
         /**
-         * updates the views in the ui with database data
+         * retrieve api key
          */
-        public void updateDetailViews() {
-            mTitleTextView.setText(mTitle);
-            mReleaseDateTextView.setText(mReleaseDate + "  |");
-            mRatingTextView.setText(mRating + "/10");
-            mOverviewTextView.setText(mOverview);
-            mTrailerTextView.setText("Play Trailer");
-            mReviewTextView.setText(mReview);
+        public void returnApiKey(){
+            mKey = getString(R.string.api_key);
+        }
+
+        /**
+         * return intent extras from previous activity
+         */
+        public void returnIntentExtras(){
+            Intent detailIntent = getActivity().getIntent();
+            mPosition = detailIntent.getIntExtra("position", 0);
+            mMovieId = detailIntent.getIntExtra("id", 0);
         }
 
         /**
@@ -156,7 +152,12 @@ public class DetailActivity extends AppCompatActivity {
          */
         public void initializeRealm(){
             Realm.init(getActivity());
-            mRealm = Realm.getDefaultInstance();
+
+            RealmConfiguration config = new RealmConfiguration.Builder()
+                    .deleteRealmIfMigrationNeeded()
+                    .build();
+
+            mRealm = Realm.getInstance(config);
         }
 
         /**
@@ -172,25 +173,73 @@ public class DetailActivity extends AppCompatActivity {
             }
         }
 
-        public void storeFavoriteInRealm() {
-            ImageView mPosterRef = mPosterImage;
+        /**
+         * store movie data locally using realm database
+         */
+       public void storeFavoriteInRealm(final Movie movie) {
+           ImageView mPosterRef = mPosterImage;
             Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
-            byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
+            final byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
 
-            Favorite favorite = new Favorite(mTitle,
-                    mReleaseDate,
-                    mRating,
-                    mOverview,
-                    mReview,
-                    posterByteArray);
+           mRealm.executeTransaction(new Realm.Transaction(){
+               @Override
+               public void execute(Realm realm){
+                   Favorite favorite = mRealm.createObject(Favorite.class);
+                   favorite.setTitle(movie.getTitle());
+                   favorite.setOverview(movie.getOverview());
+                   favorite.setRating(movie.getRating().toString());
+                   favorite.setReleaseDate(movie.getReleaseData());
+                   favorite.setPoster(posterByteArray);
+                   favorite.setId(movie.getId());
+               }
+           });
+        }
 
-            final RealmResults<Favorite> fCollection = mRealm
-                    .where(Favorite.class)
-                    .findAll();
+        /**
+         * api call that retrieves movie detail based on id
+         */
+        public void apiRequestDetail(final int id){
+            final String API_KEY = getString(R.string.api_key);
 
-            mRealm.beginTransaction();
-            final Favorite managedFavorite = mRealm.copyToRealm(favorite);
-            mRealm.commitTransaction();
+            if(API_KEY.isEmpty()){
+                Toast.makeText(getActivity(),
+                        "Please get your api key from themobiedb.org first",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+
+            Call<Movie> call = apiService.getDetails(id, API_KEY);
+
+            call.enqueue(new Callback<Movie>() {
+                @Override
+                public void onResponse(Call<Movie> call, Response<Movie> response) {
+                    Movie movie = response.body();
+                    updateDetailViews(movie);
+                    setFloatingActionButtonListener(movie);
+                }
+
+                @Override
+                public void onFailure(Call<Movie> call, Throwable t) {
+                    Log.e("Response Error: ", t.toString());
+                }
+            });
+        }
+
+        /**
+         * updates the views in the ui with database data
+         */
+        public void updateDetailViews(Movie movie) {
+            mTitleTextView.setText(movie.getTitle());
+            mReleaseDateTextView.setText(movie.getReleaseData());
+            mOverviewTextView.setText(movie.getOverview());
+            mRatingTextView.setText(movie.getRating().toString());
+            mTrailerTextView.setText("Trailer");
+
+            Picasso.with(mContext)
+                    .load(BASE_POSTER_URL + POSTER_SIZE_PARAM + movie.getPosterPath())
+                    .into(mPosterImage);
         }
     }
 }

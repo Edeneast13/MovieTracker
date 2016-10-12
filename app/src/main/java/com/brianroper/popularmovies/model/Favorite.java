@@ -12,6 +12,7 @@ public class Favorite extends RealmObject{
     private String overview;
     private String review;
     private byte[] poster;
+    private int id;
 
     public Favorite() {}
 
@@ -20,7 +21,8 @@ public class Favorite extends RealmObject{
                     String rating,
                     String overview,
                     String review ,
-                    byte[] poster){
+                    byte[] poster,
+                    int id){
 
         this.title = title;
         this.releaseData = releaseDate;
@@ -28,6 +30,7 @@ public class Favorite extends RealmObject{
         this.overview = overview;
         this.review = review;
         this.poster = poster;
+        this.id = id;
     }
 
     public String getTitle() {
@@ -76,5 +79,13 @@ public class Favorite extends RealmObject{
 
     public void setPoster(byte[] poster) {
         poster = poster;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }
