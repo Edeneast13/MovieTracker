@@ -1,4 +1,4 @@
-package com.brianroper.popularmovies;
+package com.brianroper.popularmovies.model;
 
 /**
  * Created by brianroper on 3/31/16.

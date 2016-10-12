@@ -107,4 +107,9 @@
 
     <string name="no_favorites">You currently have no movies saved to your favorites. Check out our awesome collection to change that!</string>
 
+    <!-- main activity strings -->
+    <string name="main_tab_popular_title">popular</string>
+    <string name="main_tab_rating_title">top rated</string>
+    <string name="main_tab_favorite_title">favorites</string>
+
 </resources>
