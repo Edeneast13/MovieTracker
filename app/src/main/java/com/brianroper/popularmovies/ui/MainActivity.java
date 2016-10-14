@@ -10,25 +10,9 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.widget.Toast;
 
-import com.brianroper.popularmovies.adapter.MovieAdapter;
-import com.brianroper.popularmovies.model.Movie;
-import com.brianroper.popularmovies.model.MovieResponse;
 import com.brianroper.popularmovies.R;
-import com.brianroper.popularmovies.rest.ApiClient;
-import com.brianroper.popularmovies.rest.ApiInterface;
-import com.brianroper.popularmovies.util.DbUtil;
-
-import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -141,12 +125,7 @@ public class MainActivity extends AppCompatActivity {
          */
         @Override
         public int getCount() {
-            if(DbUtil.activeDb(getApplicationContext()) == true){
-                return 3;
-            }
-            else{
-                return 2;
-            }
+            return 3;
         }
 
         @Override

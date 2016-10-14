@@ -1,8 +1,8 @@
 package com.brianroper.popularmovies.ui;
 
-
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,7 +12,8 @@ import android.view.ViewGroup;
 import com.brianroper.popularmovies.R;
 import com.brianroper.popularmovies.adapter.FavoriteAdapter;
 import com.brianroper.popularmovies.model.Favorite;
-import com.brianroper.popularmovies.model.Movie;
+
+import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -23,9 +24,9 @@ import io.realm.RealmResults;
  */
 public class FavoriteFragment extends Fragment {
 
-    private Realm mRealm;
-    RealmResults<Favorite> mFavorites;
     private RecyclerView mRecyclerView;
+    private List<Favorite> mFavorites;
+    private Realm mRealm;
 
     public FavoriteFragment() {}
 
@@ -39,11 +40,15 @@ public class FavoriteFragment extends Fragment {
         initializeViews(root);
         initializeRealm();
 
-        returnFavoritesFromRealm();
-
         updateUI();
 
         return root;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mRealm.close();
     }
 
     /**
@@ -57,20 +62,21 @@ public class FavoriteFragment extends Fragment {
      * initialize realm for this thread
      */
     public void initializeRealm(){
-        Realm.init(getActivity());
+        mRealm.init(getActivity());
 
-        RealmConfiguration config = new RealmConfiguration.Builder()
-                .deleteRealmIfMigrationNeeded()
-                .build();
+        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder().build();
 
-        mRealm = Realm.getInstance(config);
+        mRealm = Realm.getInstance(realmConfiguration);
     }
-
-    public void returnFavoritesFromRealm(){
-        mFavorites = mRealm.where(Favorite.class).findAll();
-    }
-
     public void updateUI(){
-        mRecyclerView.setAdapter(new FavoriteAdapter(getActivity(), R.layout.movie_recycler, mFavorites));
+        RealmResults<Favorite> results = mRealm.where(Favorite.class).findAll();
+
+        for (int i = 0; i < results.size(); i++) {
+            Log.i("Favorite: ", results.get(i).toString());
+        }
+
+        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
+        mRecyclerView.setAdapter(new FavoriteAdapter(getActivity(),
+                R.layout.favorite_recycler, results));
     }
 }

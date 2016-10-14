@@ -20,17 +20,18 @@ import android.widget.Toast;
 import com.brianroper.popularmovies.model.Favorite;
 import com.brianroper.popularmovies.R;
 import com.brianroper.popularmovies.model.Movie;
+import com.brianroper.popularmovies.realm.RealmController;
 import com.brianroper.popularmovies.rest.ApiClient;
 import com.brianroper.popularmovies.rest.ApiInterface;
-import com.brianroper.popularmovies.util.DbBitmapUtil;
+import com.brianroper.popularmovies.util.Util;
 import com.squareup.picasso.Picasso;
 
-import io.realm.DynamicRealm;
+import java.util.ArrayList;
+
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.RealmMigration;
+import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.RealmSchema;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -87,6 +88,8 @@ public class DetailActivity extends AppCompatActivity {
 
         private Realm mRealm;
 
+        private Movie mCurrentMovie;
+
         public void DetailsFragment(){}
 
         @Override
@@ -105,7 +108,15 @@ public class DetailActivity extends AppCompatActivity {
 
             setHasOptionsMenu(true);
 
+            setFloatingActionButtonListener();
+
             return root;
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+            mRealm.close();
         }
 
         /**
@@ -122,11 +133,11 @@ public class DetailActivity extends AppCompatActivity {
             mReviewTextView = (TextView) root.findViewById(R.id.review_textview);
         }
 
-        public void setFloatingActionButtonListener(final Movie movie){
+        public void setFloatingActionButtonListener(){
             mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    storeFavoriteInRealm(movie);
+                    storeFavoriteInRealm(mCurrentMovie);
                 }
             });
         }
@@ -150,14 +161,12 @@ public class DetailActivity extends AppCompatActivity {
         /**
          * initialize realm for this thread
          */
-        public void initializeRealm(){
-            Realm.init(getActivity());
+        public void initializeRealm() {
+            mRealm.init(getActivity());
 
-            RealmConfiguration config = new RealmConfiguration.Builder()
-                    .deleteRealmIfMigrationNeeded()
-                    .build();
+            RealmConfiguration realmConfiguration = new RealmConfiguration.Builder().build();
 
-            mRealm = Realm.getInstance(config);
+            mRealm = Realm.getInstance(realmConfiguration);
         }
 
         /**
@@ -177,22 +186,31 @@ public class DetailActivity extends AppCompatActivity {
          * store movie data locally using realm database
          */
        public void storeFavoriteInRealm(final Movie movie) {
-           ImageView mPosterRef = mPosterImage;
-            Bitmap posterBitmap = DbBitmapUtil.convertImageViewToBitmap(mPosterRef);
-            final byte[] posterByteArray = DbBitmapUtil.convertBitmapToByteArray(posterBitmap);
 
-           mRealm.executeTransaction(new Realm.Transaction(){
-               @Override
-               public void execute(Realm realm){
-                   Favorite favorite = mRealm.createObject(Favorite.class);
-                   favorite.setTitle(movie.getTitle());
-                   favorite.setOverview(movie.getOverview());
-                   favorite.setRating(movie.getRating().toString());
-                   favorite.setReleaseDate(movie.getReleaseData());
-                   favorite.setPoster(posterByteArray);
-                   favorite.setId(movie.getId());
-               }
-           });
+           Log.i("Title: ", movie.getTitle());
+
+           mRealm.beginTransaction();
+
+           final Favorite favorite = mRealm.createObject(Favorite.class, movie.getId());;
+           favorite.setTitle(movie.getTitle());
+           favorite.setRating(movie.getRating().toString());
+           favorite.setOverview(movie.getOverview());
+           favorite.setReleaseDate(movie.getReleaseData());
+           favorite.setPoster(Util.convertBitmapToByteArray(Util.convertImageViewToBitmap(mPosterImage)));
+
+           mRealm.copyToRealm(favorite);
+           mRealm.commitTransaction();
+
+           //addFavorite(favorite);
+        }
+
+        /**
+         * add a favorite to realm db
+         */
+        public void addFavorite(final Favorite favorite){
+            mRealm.beginTransaction();
+            mRealm.copyToRealm(favorite);
+            mRealm.commitTransaction();
         }
 
         /**
@@ -215,9 +233,8 @@ public class DetailActivity extends AppCompatActivity {
             call.enqueue(new Callback<Movie>() {
                 @Override
                 public void onResponse(Call<Movie> call, Response<Movie> response) {
-                    Movie movie = response.body();
-                    updateDetailViews(movie);
-                    setFloatingActionButtonListener(movie);
+                    mCurrentMovie = response.body();
+                    updateDetailViews(mCurrentMovie);
                 }
 
                 @Override

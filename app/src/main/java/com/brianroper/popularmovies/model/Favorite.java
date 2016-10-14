@@ -1,6 +1,7 @@
 package com.brianroper.popularmovies.model;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by brianroper on 10/10/16.
@@ -12,6 +13,7 @@ public class Favorite extends RealmObject{
     private String overview;
     private String review;
     private byte[] poster;
+    @PrimaryKey
     private int id;
 
     public Favorite() {}
