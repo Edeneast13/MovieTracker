@@ -3,8 +3,11 @@ package com.brianroper.popularmovies.util;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.view.Display;
+import android.view.WindowManager;
 import android.widget.ImageView;
 
 import java.io.ByteArrayOutputStream;
@@ -41,5 +44,31 @@ public class Util {
         image.buildDrawingCache();
         Bitmap bitmap = image.getDrawingCache();
         return bitmap;
+    }
+
+    /**
+     * gets the devices screen height
+     */
+    public static int returnScreenHeight(Context context){
+        WindowManager windowManager = (WindowManager)context
+                .getSystemService(Context.WINDOW_SERVICE);
+        Display display = windowManager.getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int height = size.y;
+        return height;
+    }
+
+    /**
+     * gets the devices screen width
+     */
+    public static int returnScreenWidth(Context context){
+        WindowManager windowManager = (WindowManager)context
+                .getSystemService(Context.WINDOW_SERVICE);
+        Display display = windowManager.getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int width = size.x;
+        return width;
     }
 }

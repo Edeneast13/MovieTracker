@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,16 +63,12 @@ public class FavoriteFragment extends Fragment {
     public void initializeRealm(){
         mRealm.init(getActivity());
 
-        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder().build();
+        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder().deleteRealmIfMigrationNeeded().build();
 
         mRealm = Realm.getInstance(realmConfiguration);
     }
     public void updateUI(){
         RealmResults<Favorite> results = mRealm.where(Favorite.class).findAll();
-
-        for (int i = 0; i < results.size(); i++) {
-            Log.i("Favorite: ", results.get(i).toString());
-        }
 
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
         mRecyclerView.setAdapter(new FavoriteAdapter(getActivity(),

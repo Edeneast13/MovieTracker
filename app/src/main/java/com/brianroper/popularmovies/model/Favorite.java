@@ -1,5 +1,7 @@
 package com.brianroper.popularmovies.model;
 
+import android.support.annotation.NonNull;
+
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
@@ -7,14 +9,21 @@ import io.realm.annotations.PrimaryKey;
  * Created by brianroper on 10/10/16.
  */
 public class Favorite extends RealmObject{
-    private String title;
-    private String releaseData;
-    private String rating;
-    private String overview;
-    private String review;
-    private byte[] poster;
+    @NonNull
+    public String title;
+    @NonNull
+    public String releaseData;
+    @NonNull
+    public String rating;
+    @NonNull
+    public String overview;
+    public String review;
+    @NonNull
+    public byte[] poster;
     @PrimaryKey
     private int id;
+    @NonNull
+    public String posterPath;
 
     public Favorite() {}
 
@@ -89,5 +98,14 @@ public class Favorite extends RealmObject{
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    @NonNull
+    public String getPosterPath() {
+        return posterPath;
+    }
+
+    public void setPosterPath(@NonNull String posterPath) {
+        this.posterPath = posterPath;
     }
 }
