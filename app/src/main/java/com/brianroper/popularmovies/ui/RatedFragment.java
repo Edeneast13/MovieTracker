@@ -17,6 +17,7 @@ import com.brianroper.popularmovies.model.Movie;
 import com.brianroper.popularmovies.model.MovieResponse;
 import com.brianroper.popularmovies.rest.ApiClient;
 import com.brianroper.popularmovies.rest.ApiInterface;
+import com.brianroper.popularmovies.util.Util;
 
 import java.util.List;
 
@@ -76,20 +77,23 @@ public class RatedFragment extends Fragment {
 
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
 
-        ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+        //test for network activity before making api call
+        if(Util.activeNetworkCheck(getActivity()) == true){
+            ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
 
-        Call<MovieResponse> call = apiService.getTopRated(API_KEY);
-        call.enqueue(new Callback<MovieResponse>() {
-            @Override
-            public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
-                List<Movie> movies = response.body().getResults();
-                mRecyclerView.setAdapter(new MovieAdapter(getActivity(),R.layout.movie_recycler, movies));
-            }
+            Call<MovieResponse> call = apiService.getTopRated(API_KEY);
+            call.enqueue(new Callback<MovieResponse>() {
+                @Override
+                public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
+                    List<Movie> movies = response.body().getResults();
+                    mRecyclerView.setAdapter(new MovieAdapter(getActivity(),R.layout.movie_recycler, movies));
+                }
 
-            @Override
-            public void onFailure(Call<MovieResponse> call, Throwable t) {
-                Log.e("Response Error: ", t.toString());
-            }
-        });
+                @Override
+                public void onFailure(Call<MovieResponse> call, Throwable t) {
+                    Log.e("Response Error: ", t.toString());
+                }
+            });
+        }else{Util.noNetworkMessage(getActivity());}
     }
 }

@@ -19,6 +19,8 @@ import android.widget.Toast;
 import com.brianroper.popularmovies.model.Favorite;
 import com.brianroper.popularmovies.R;
 import com.brianroper.popularmovies.model.Movie;
+import com.brianroper.popularmovies.model.Trailer;
+import com.brianroper.popularmovies.model.Videos;
 import com.brianroper.popularmovies.rest.ApiClient;
 import com.brianroper.popularmovies.rest.ApiInterface;
 import com.brianroper.popularmovies.util.Util;
@@ -26,6 +28,7 @@ import com.squareup.picasso.Picasso;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -99,6 +102,7 @@ public class DetailActivity extends AppCompatActivity {
             returnIntentExtras();
 
             apiRequestDetail(mMovieId);
+            apiRequestTrailer(mMovieId);
 
             setHasOptionsMenu(true);
 
@@ -183,18 +187,29 @@ public class DetailActivity extends AppCompatActivity {
          * add a favorite to realm db
          */
         public void updateRealm(final Movie movie){
-            mRealm.executeTransaction(new Realm.Transaction(){
-                @Override
-                public void execute(Realm realm) {
-                    Favorite favorite = realm.createObject(Favorite.class, movie.getId());
-                    favorite.title = movie.getTitle();
-                    favorite.rating = movie.getRating().toString();
-                    favorite.overview = movie.getOverview();
-                    favorite.releaseData = movie.getReleaseData();
-                    favorite.poster = Util.convertBitmapToByteArray(Util.convertImageViewToBitmap(mPosterImage));
-                    favorite.posterPath = movie.getPosterPath();
-                }
-            });
+            try {
+                mRealm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Favorite favorite = realm.createObject(Favorite.class, movie.getId());
+                        favorite.title = movie.getTitle();
+                        favorite.rating = movie.getRating().toString();
+                        favorite.overview = movie.getOverview();
+                        favorite.releaseData = movie.getReleaseData();
+                        favorite.poster = Util.convertBitmapToByteArray(Util.convertImageViewToBitmap(mPosterImage));
+                        favorite.posterPath = movie.getPosterPath();
+                        mFloatingActionButton.setImageResource(R.drawable.starempty);
+                    }
+                });
+            }catch(RealmPrimaryKeyConstraintException e){
+                mRealm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        realm.where(Favorite.class).equalTo("id", movie.getId()).findFirst().deleteFromRealm();
+                        mFloatingActionButton.setImageResource(R.drawable.starfull);
+                    }
+                });
+            }
         }
 
         /**
@@ -210,22 +225,59 @@ public class DetailActivity extends AppCompatActivity {
                 return;
             }
 
-            final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+            //test for active network connection before making api call
+            if(Util.activeNetworkCheck(getActivity()) == true){
+                final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
 
-            Call<Movie> call = apiService.getDetails(id, API_KEY);
+                Call<Movie> call = apiService.getDetails(id, API_KEY);
 
-            call.enqueue(new Callback<Movie>() {
-                @Override
-                public void onResponse(Call<Movie> call, Response<Movie> response) {
-                    mCurrentMovie = response.body();
-                    updateDetailViews(mCurrentMovie);
-                }
+                call.enqueue(new Callback<Movie>() {
+                    @Override
+                    public void onResponse(Call<Movie> call, Response<Movie> response) {
+                        mCurrentMovie = response.body();
+                        updateDetailViews(mCurrentMovie);
+                    }
 
-                @Override
-                public void onFailure(Call<Movie> call, Throwable t) {
-                    Log.e("Response Error: ", t.toString());
-                }
-            });
+                    @Override
+                    public void onFailure(Call<Movie> call, Throwable t) {
+                        Log.e("Response Error: ", t.toString());
+                    }
+                });
+            }else{Util.noNetworkMessage(getActivity());}
+        }
+
+        /**
+         * api call that retrieves trailer data based on movie id
+         */
+        public void apiRequestTrailer(final int id){
+            final String API_KEY = getString(R.string.api_key);
+
+            if(API_KEY.isEmpty()){
+                Toast.makeText(getActivity(),
+                        "Please get your api key from themobiedb.org first",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if(Util.activeNetworkCheck(getActivity()) == true){
+                final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+
+                Call<Videos> call = apiService.getVideos(id, API_KEY);
+
+                call.enqueue(new Callback<Videos>() {
+                    @Override
+                    public void onResponse(Call<Videos> call, Response<Videos> response) {
+                        Videos videos = response.body();
+                        Trailer trailer = videos.getResults().get(0);
+                        setTrailerTextViewListener(trailer);
+                    }
+
+                    @Override
+                    public void onFailure(Call<Videos> call, Throwable t) {
+                        t.printStackTrace();
+                    }
+                });
+            }
         }
 
         /**
@@ -241,6 +293,51 @@ public class DetailActivity extends AppCompatActivity {
             Picasso.with(mContext)
                     .load(BASE_POSTER_URL + POSTER_SIZE_PARAM + movie.getPosterPath())
                     .into(mPosterImage);
+
+            isFavoriteSaved();
+        }
+
+        /**
+         * handles behavior of the trailer textview
+         */
+        public void setTrailerTextViewListener(final Trailer trailer){
+            mTrailerTextView.setText(trailer.getName());
+            mTrailerTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(trailer!=null){
+                        Uri.Builder builder = new Uri.Builder();
+                        builder.scheme("https");
+                        builder.authority(YOUTUBE_BASE_URL);
+                        builder.appendPath(YOUTUBE_WATCH_PARAM);
+                        builder.appendQueryParameter(YOUTUBE_VIDEO_ID_QUERY_PARAM, trailer.getKey());
+
+                        playVideoInYouTubeApp(builder.build().toString());
+                    }
+                    else{
+                        mTrailerTextView.setText("");
+                    }
+                }
+            });
+        }
+
+        /**
+         * check for existing value in realm and adjusts fab resource accordingly
+         */
+        public void isFavoriteSaved(){
+            mRealm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    Favorite favorite = realm.where(Favorite.class).equalTo("id", mMovieId).findFirst();
+                    if (favorite != null) {
+                        if (favorite.getId() == mMovieId) {
+                            mFloatingActionButton.setImageResource(R.drawable.starempty);
+                        }
+                    } else {
+                        mFloatingActionButton.setImageResource(R.drawable.starfull);
+                    }
+                }
+            });
         }
     }
 }

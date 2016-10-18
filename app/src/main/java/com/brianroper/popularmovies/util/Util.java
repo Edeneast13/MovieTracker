@@ -9,6 +9,9 @@ import android.net.NetworkInfo;
 import android.view.Display;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.Toast;
+
+import com.brianroper.popularmovies.R;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -18,14 +21,19 @@ import java.io.File;
  */
 public class Util {
 
+    /**
+     * tests for an active network connection
+     */
     public static boolean activeNetworkCheck(Context c){
-
         ConnectivityManager connectivityManager = (ConnectivityManager)c.getSystemService(
                 Context.CONNECTIVITY_SERVICE);
-
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-
         return networkInfo != null && networkInfo.isConnectedOrConnecting();
+    }
+
+    public static void noNetworkMessage(Context context){
+        Toast.makeText(context, context.getString(R.string.no_network_message),
+                Toast.LENGTH_SHORT).show();
     }
 
     public static byte[] convertBitmapToByteArray(Bitmap bitmap){
