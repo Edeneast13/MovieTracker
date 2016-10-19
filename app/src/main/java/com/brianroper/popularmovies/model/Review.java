@@ -1,30 +1,34 @@
 package com.brianroper.popularmovies.model;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by brianroper on 3/31/16.
  */
 public class Review {
+    @SerializedName("author")
+    private String author;
+    @SerializedName("content")
+    private String content;
 
-    private String mAuthor;
-    private String mContent;
-
-    public Review() {
-
+    public Review(String author, String content) {
+        this.author = author;
+        this.content = content;
     }
 
     public String getAuthor() {
-        return mAuthor;
+        return author;
     }
 
     public void setAuthor(String author) {
-        mAuthor = author;
+        this.author = author;
     }
 
     public String getContent() {
-        return mContent;
+        return content;
     }
 
     public void setContent(String content) {
-        mContent = content;
+        this.content = content;
     }
 }

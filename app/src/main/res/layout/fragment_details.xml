@@ -1,56 +1,51 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
              xmlns:app="http://schemas.android.com/apk/res-auto"
              tools:context="com.brianroper.popularmovies.DetailsFragment"
-             android:id="@+id/movie_detail_container">
+             android:id="@+id/movie_detail_container"
+             android:layout_margin="6dp">
 
-    <ScrollView
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:popupTheme="@style/AppTheme.PopupOverlay"/>
 
-    <LinearLayout
+    <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:elevation="2dp"
-        android:layout_gravity="left"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:paddingTop="50dp"
-        android:orientation="vertical"
-        android:paddingBottom="40dp"
-        android:gravity="center_horizontal">
+        android:id="@+id/main_surface"
+        android:elevation="2dp">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
             <ImageView
                 android:layout_width="188dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/poster_thumbnail"
-                android:layout_gravity="center|top"
-                android:elevation="6dp"
+                android:layout_centerInParent="true"
                 android:layout_marginTop="15dp"/>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:paddingTop="10dp"
-            android:fontFamily="sans-serif-regular"
-            android:textSize="22sp"
-            android:id="@+id/movie_title"
-            android:textStyle="bold"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingTop="10dp"
+                android:fontFamily="sans-serif-regular"
+                android:textSize="22sp"
+                android:id="@+id/movie_title"
+                android:textStyle="bold"
+                android:layout_below="@+id/poster_thumbnail"/>
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:layout_below="@+id/movie_title">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -69,9 +64,15 @@
                     android:id="@+id/rating"/>
 
             </LinearLayout>
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
 
-        </LinearLayout>
-
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/overview_surface"
+        android:layout_below="@+id/main_surface"
+        android:layout_marginTop="10dp">
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -80,8 +81,15 @@
             android:padding="5dp"
             android:textSize="15sp"
             android:id="@+id/plot_overview"
-            android:elevation="2dp"
             android:singleLine="false"/>
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/trailer_surface"
+        android:layout_below="@+id/overview_surface"
+        android:layout_marginTop="10dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -93,6 +101,15 @@
             android:id="@+id/trailer_textview"
             android:clickable="true"/>
 
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/review_surface"
+        android:layout_below="@+id/trailer_surface"
+        android:layout_marginTop="10dp">
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -102,8 +119,17 @@
             android:textSize="15sp"
             android:id="@+id/review_textview"/>
 
-    </LinearLayout>
+    </android.support.v7.widget.CardView>
 
-    </ScrollView>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/favorites_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        android:src="@android:drawable/star_off"
+        app:fabSize="normal"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"/>
 
-</FrameLayout>
+</RelativeLayout>

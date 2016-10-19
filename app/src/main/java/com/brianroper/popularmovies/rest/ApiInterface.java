@@ -2,8 +2,8 @@ package com.brianroper.popularmovies.rest;
 
 import com.brianroper.popularmovies.model.Movie;
 import com.brianroper.popularmovies.model.MovieResponse;
-import com.brianroper.popularmovies.model.Trailer;
-import com.brianroper.popularmovies.model.Videos;
+import com.brianroper.popularmovies.model.ReviewResponse;
+import com.brianroper.popularmovies.model.TrailerResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -24,5 +24,8 @@ public interface ApiInterface {
     Call<MovieResponse> getPopular(@Query("api_key") String apiKey);
 
     @GET("movie/{id}/videos")
-    Call<Videos> getVideos(@Path("id")int id, @Query("api_key") String apiKey);
+    Call<TrailerResponse> getVideos(@Path("id")int id, @Query("api_key") String apiKey);
+
+    @GET("movie/{id}/reviews")
+    Call<ReviewResponse> getReviews(@Path("id")int id, @Query("api_key") String apiKey);
 }
