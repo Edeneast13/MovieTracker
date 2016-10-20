@@ -56,6 +56,7 @@ public class DetailActivity extends AppCompatActivity {
     private CardView mOverViewSurface;
     private CardView mTrailerSurface;
     private CardView mReviewSurface;
+    private ImageView mDetailHeaderImageView;
     private Context mContext;
 
     //youtube url params
@@ -92,6 +93,9 @@ public class DetailActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
+    /**
+     * closes the current realm instance when the activity is destroyed
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -115,6 +119,7 @@ public class DetailActivity extends AppCompatActivity {
         mTrailerSurface = (CardView)findViewById(R.id.trailer_surface);
         mReviewSurface = (CardView)findViewById(R.id.review_surface);
         mToolbar = (Toolbar)findViewById(R.id.detail_toolbar);
+        mDetailHeaderImageView = (ImageView)findViewById(R.id.detail_header);
     }
 
     /**
@@ -233,7 +238,6 @@ public class DetailActivity extends AppCompatActivity {
                     mCurrentMovie = response.body();
                     updateDetailViews(mCurrentMovie);
                 }
-
                 @Override
                 public void onFailure(Call<Movie> call, Throwable t) {
                     Log.e("Response Error: ", t.toString());
@@ -268,7 +272,6 @@ public class DetailActivity extends AppCompatActivity {
                         setTrailerTextViewListener(trailer);
                     }
                 }
-
                 @Override
                 public void onFailure(Call<TrailerResponse> call, Throwable t) {
                     t.printStackTrace();
@@ -302,9 +305,8 @@ public class DetailActivity extends AppCompatActivity {
                         Review review = reviews.getResults().get(0);
                         setReviewTextViewText(review);
                     }
-                    catch (Exception e){}
+                    catch (Exception e){mReviewSurface.setVisibility(View.GONE);}
                 }
-
                 @Override
                 public void onFailure(Call<ReviewResponse> call, Throwable t) {
                     t.printStackTrace();
@@ -320,8 +322,21 @@ public class DetailActivity extends AppCompatActivity {
         mTitleTextView.setText(movie.getTitle());
         mReleaseDateTextView.setText(movie.getReleaseData());
         mOverviewTextView.setText(movie.getOverview());
-        mRatingTextView.setText(movie.getRating().toString());
+        mRatingTextView.setText(movie.getRating().toString() + "/10");
         mTrailerTextView.setText("Trailer");
+
+        //https://image.tmdb.org/t/p/w500/
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme("https");
+        builder.authority("image.tmdb.org");
+        builder.appendPath("t");
+        builder.appendPath("p");
+        builder.appendPath("w500");
+
+        Picasso.with(mContext)
+                .load(builder.build().toString() + movie.getBackdropPath())
+                .fit()
+                .into(mDetailHeaderImageView);
 
         //poster url params
         final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
@@ -361,7 +376,7 @@ public class DetailActivity extends AppCompatActivity {
      * sets the review text to match data retrieved from api
      */
     public void setReviewTextViewText(final Review review){
-        mReviewTextView.setText(review.getAuthor() + "\n" + review.getContent());
+        mReviewTextView.setText("Author: " + review.getAuthor() + "\n" + review.getContent());
     }
 
     /**
